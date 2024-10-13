@@ -1,0 +1,246 @@
+2024-10-12 19:23:08,129 DEBUG [core.db.setup] Running database migrations for sqlite:///pythagora.db (config: c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\db\alembic.ini)
+2024-10-12 19:38:41,735 DEBUG [core.db.setup] Running database migrations for sqlite:///pythagora.db (config: c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\db\alembic.ini)
+2024-10-12 19:38:41,898 DEBUG [core.db.session] Connected to database sqlite+aiosqlite:///pythagora.db
+2024-10-12 19:40:27,128 DEBUG [core.db.setup] Running database migrations for sqlite:///pythagora.db (config: c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\db\alembic.ini)
+2024-10-12 19:40:27,182 DEBUG [core.db.session] Connected to database sqlite+aiosqlite:///pythagora.db
+2024-10-12 19:41:23,575 DEBUG [core.db.setup] Running database migrations for sqlite:///pythagora.db (config: c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\db\alembic.ini)
+2024-10-12 19:41:23,627 DEBUG [core.db.session] Connected to database sqlite+aiosqlite:///pythagora.db
+2024-10-12 19:59:40,345 DEBUG [core.db.setup] Running database migrations for sqlite:///pythagora.db (config: c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\db\alembic.ini)
+2024-10-12 19:59:40,363 DEBUG [core.ui.ipc_client] Connecting to IPC server at localhost:8125
+2024-10-12 19:59:49,266 DEBUG [core.llm.base] Calling openai model gpt-4o-2024-05-13 (temp=0.5), prompt length: 0.1 KB
+2024-10-12 19:59:49,333 DEBUG [core.llm.base] Calling openai model gpt-4-0125-preview (temp=0.0), prompt length: 0.1 KB
+2024-10-12 19:59:49,351 DEBUG [core.llm.base] Calling openai model gpt-3.5-turbo (temp=0.0), prompt length: 0.1 KB
+2024-10-12 19:59:49,368 DEBUG [core.llm.base] Calling anthropic model claude-3-5-sonnet-20240620 (temp=0.5), prompt length: 0.1 KB
+2024-10-12 19:59:49,764 WARNING [core.llm.base] Key expired: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+Traceback (most recent call last):
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\base.py", line 189, in __call__
+    response, prompt_tokens, completion_tokens = await self._make_request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\anthropic_client.py", line 85, in _make_request
+    async with self.client.messages.stream(**completion_kwargs) as stream:
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\anthropic\lib\streaming\_messages.py", line 396, in __aenter__
+    self.__stream = await self.__api_request
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\anthropic\_base_client.py", line 1789, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\anthropic\_base_client.py", line 1492, in request
+    return await self._request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\anthropic\_base_client.py", line 1583, in _request
+    raise self._make_status_error_from_response(err.response) from None
+anthropic.AuthenticationError: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+2024-10-12 19:59:49,766 DEBUG [core.ui.ipc_client] Sending message: [API check for anthropic claude-3-5-sonnet-20240620 failed with: [BricksLLM] key sk-bk********************************************** has been revoked] from pythagora
+2024-10-12 19:59:49,767 WARNING [core.cli.main] API check for anthropic failed with: [BricksLLM] key sk-bk********************************************** has been revoked
+2024-10-12 19:59:49,769 WARNING [core.llm.base] Key expired: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+Traceback (most recent call last):
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\base.py", line 189, in __call__
+    response, prompt_tokens, completion_tokens = await self._make_request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\openai_client.py", line 51, in _make_request
+    stream = await self.client.chat.completions.create(**completion_kwargs)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\resources\chat\completions.py", line 1289, in create
+    return await self._post(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1826, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1519, in request
+    return await self._request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1620, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+2024-10-12 19:59:49,771 DEBUG [core.ui.ipc_client] Sending message: [API check for openai gpt-4o-2024-05-13 failed with: [BricksLLM] key sk-bk********************************************** has been revoked] from pythagora
+2024-10-12 19:59:49,771 WARNING [core.cli.main] API check for openai failed with: [BricksLLM] key sk-bk********************************************** has been revoked
+2024-10-12 19:59:49,772 WARNING [core.llm.base] Key expired: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+Traceback (most recent call last):
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\base.py", line 189, in __call__
+    response, prompt_tokens, completion_tokens = await self._make_request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\openai_client.py", line 51, in _make_request
+    stream = await self.client.chat.completions.create(**completion_kwargs)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\resources\chat\completions.py", line 1289, in create
+    return await self._post(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1826, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1519, in request
+    return await self._request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1620, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+2024-10-12 19:59:49,773 DEBUG [core.ui.ipc_client] Sending message: [API check for openai gpt-3.5-turbo failed with: [BricksLLM] key sk-bk********************************************** has been revoked] from pythagora
+2024-10-12 19:59:49,773 WARNING [core.cli.main] API check for openai failed with: [BricksLLM] key sk-bk********************************************** has been revoked
+2024-10-12 19:59:49,774 WARNING [core.llm.base] Key expired: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+Traceback (most recent call last):
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\base.py", line 189, in __call__
+    response, prompt_tokens, completion_tokens = await self._make_request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\openai_client.py", line 51, in _make_request
+    stream = await self.client.chat.completions.create(**completion_kwargs)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\resources\chat\completions.py", line 1289, in create
+    return await self._post(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1826, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1519, in request
+    return await self._request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1620, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+2024-10-12 19:59:49,775 DEBUG [core.ui.ipc_client] Sending message: [API check for openai gpt-4-0125-preview failed with: [BricksLLM] key sk-bk********************************************** has been revoked] from pythagora
+2024-10-12 19:59:49,775 WARNING [core.cli.main] API check for openai failed with: [BricksLLM] key sk-bk********************************************** has been revoked
+2024-10-12 19:59:49,775 DEBUG [core.ui.ipc_client] Sending message: [Pythagora cannot start because the LLM API is not reachable.] from pythagora
+2024-10-12 19:59:49,775 DEBUG [core.telemetry] Telemetry.send(): sending telemetry data to https://api.pythagora.io/telemetry
+2024-10-12 19:59:50,080 DEBUG [core.ui.ipc_client] Closing the IPC connection to localhost:8125
+2024-10-12 20:00:17,191 DEBUG [core.db.setup] Running database migrations for sqlite:///pythagora.db (config: c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\db\alembic.ini)
+2024-10-12 20:00:17,207 DEBUG [core.ui.ipc_client] Connecting to IPC server at localhost:8125
+2024-10-12 20:00:19,973 DEBUG [core.llm.base] Calling openai model gpt-4o-2024-05-13 (temp=0.5), prompt length: 0.1 KB
+2024-10-12 20:00:19,993 DEBUG [core.llm.base] Calling openai model gpt-4-0125-preview (temp=0.0), prompt length: 0.1 KB
+2024-10-12 20:00:20,009 DEBUG [core.llm.base] Calling openai model gpt-3.5-turbo (temp=0.0), prompt length: 0.1 KB
+2024-10-12 20:00:20,023 DEBUG [core.llm.base] Calling anthropic model claude-3-5-sonnet-20240620 (temp=0.5), prompt length: 0.1 KB
+2024-10-12 20:00:20,323 WARNING [core.llm.base] Key expired: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+Traceback (most recent call last):
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\base.py", line 189, in __call__
+    response, prompt_tokens, completion_tokens = await self._make_request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\openai_client.py", line 51, in _make_request
+    stream = await self.client.chat.completions.create(**completion_kwargs)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\resources\chat\completions.py", line 1289, in create
+    return await self._post(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1826, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1519, in request
+    return await self._request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1620, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+2024-10-12 20:00:20,330 DEBUG [core.ui.ipc_client] Sending message: [API check for openai gpt-3.5-turbo failed with: [BricksLLM] key sk-bk********************************************** has been revoked] from pythagora
+2024-10-12 20:00:20,331 WARNING [core.cli.main] API check for openai failed with: [BricksLLM] key sk-bk********************************************** has been revoked
+2024-10-12 20:00:20,335 WARNING [core.llm.base] Key expired: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+Traceback (most recent call last):
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\base.py", line 189, in __call__
+    response, prompt_tokens, completion_tokens = await self._make_request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\openai_client.py", line 51, in _make_request
+    stream = await self.client.chat.completions.create(**completion_kwargs)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\resources\chat\completions.py", line 1289, in create
+    return await self._post(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1826, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1519, in request
+    return await self._request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1620, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+2024-10-12 20:00:20,337 DEBUG [core.ui.ipc_client] Sending message: [API check for openai gpt-4o-2024-05-13 failed with: [BricksLLM] key sk-bk********************************************** has been revoked] from pythagora
+2024-10-12 20:00:20,337 WARNING [core.cli.main] API check for openai failed with: [BricksLLM] key sk-bk********************************************** has been revoked
+2024-10-12 20:00:20,338 WARNING [core.llm.base] Key expired: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+Traceback (most recent call last):
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\base.py", line 189, in __call__
+    response, prompt_tokens, completion_tokens = await self._make_request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\openai_client.py", line 51, in _make_request
+    stream = await self.client.chat.completions.create(**completion_kwargs)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\resources\chat\completions.py", line 1289, in create
+    return await self._post(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1826, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1519, in request
+    return await self._request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1620, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+2024-10-12 20:00:20,338 DEBUG [core.ui.ipc_client] Sending message: [API check for openai gpt-4-0125-preview failed with: [BricksLLM] key sk-bk********************************************** has been revoked] from pythagora
+2024-10-12 20:00:20,339 WARNING [core.cli.main] API check for openai failed with: [BricksLLM] key sk-bk********************************************** has been revoked
+2024-10-12 20:00:20,340 WARNING [core.llm.base] Key expired: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+Traceback (most recent call last):
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\base.py", line 189, in __call__
+    response, prompt_tokens, completion_tokens = await self._make_request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\anthropic_client.py", line 85, in _make_request
+    async with self.client.messages.stream(**completion_kwargs) as stream:
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\anthropic\lib\streaming\_messages.py", line 396, in __aenter__
+    self.__stream = await self.__api_request
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\anthropic\_base_client.py", line 1789, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\anthropic\_base_client.py", line 1492, in request
+    return await self._request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\anthropic\_base_client.py", line 1583, in _request
+    raise self._make_status_error_from_response(err.response) from None
+anthropic.AuthenticationError: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+2024-10-12 20:00:20,342 DEBUG [core.ui.ipc_client] Sending message: [API check for anthropic claude-3-5-sonnet-20240620 failed with: [BricksLLM] key sk-bk********************************************** has been revoked] from pythagora
+2024-10-12 20:00:20,342 WARNING [core.cli.main] API check for anthropic failed with: [BricksLLM] key sk-bk********************************************** has been revoked
+2024-10-12 20:00:20,342 DEBUG [core.ui.ipc_client] Sending message: [Pythagora cannot start because the LLM API is not reachable.] from pythagora
+2024-10-12 20:00:20,343 DEBUG [core.telemetry] Telemetry.send(): sending telemetry data to https://api.pythagora.io/telemetry
+2024-10-12 20:00:20,606 DEBUG [core.ui.ipc_client] Closing the IPC connection to localhost:8125
+2024-10-12 20:00:56,901 DEBUG [core.db.setup] Running database migrations for sqlite:///pythagora.db (config: c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\db\alembic.ini)
+2024-10-12 20:00:56,953 DEBUG [core.db.session] Connected to database sqlite+aiosqlite:///pythagora.db
+2024-10-12 20:01:28,880 DEBUG [core.db.setup] Running database migrations for sqlite:///pythagora.db (config: c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\db\alembic.ini)
+2024-10-12 20:01:28,932 DEBUG [core.db.session] Connected to database sqlite+aiosqlite:///pythagora.db
+2024-10-12 20:04:06,244 DEBUG [core.db.setup] Running database migrations for sqlite:///pythagora.db (config: c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\db\alembic.ini)
+2024-10-12 20:04:06,294 DEBUG [core.db.session] Connected to database sqlite+aiosqlite:///pythagora.db
+2024-10-12 20:04:25,516 DEBUG [core.db.setup] Running database migrations for sqlite:///pythagora.db (config: c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\db\alembic.ini)
+2024-10-12 20:04:25,531 DEBUG [core.ui.ipc_client] Connecting to IPC server at localhost:8125
+2024-10-12 20:04:28,260 DEBUG [core.llm.base] Calling openai model gpt-4o-2024-05-13 (temp=0.5), prompt length: 0.1 KB
+2024-10-12 20:04:28,285 DEBUG [core.llm.base] Calling openai model gpt-4-0125-preview (temp=0.0), prompt length: 0.1 KB
+2024-10-12 20:04:28,299 DEBUG [core.llm.base] Calling openai model gpt-3.5-turbo (temp=0.0), prompt length: 0.1 KB
+2024-10-12 20:04:28,316 DEBUG [core.llm.base] Calling anthropic model claude-3-5-sonnet-20240620 (temp=0.5), prompt length: 0.1 KB
+2024-10-12 20:04:28,676 WARNING [core.llm.base] Key expired: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+Traceback (most recent call last):
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\base.py", line 189, in __call__
+    response, prompt_tokens, completion_tokens = await self._make_request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\openai_client.py", line 51, in _make_request
+    stream = await self.client.chat.completions.create(**completion_kwargs)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\resources\chat\completions.py", line 1289, in create
+    return await self._post(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1826, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1519, in request
+    return await self._request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1620, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+2024-10-12 20:04:28,685 DEBUG [core.ui.ipc_client] Sending message: [API check for openai gpt-4o-2024-05-13 failed with: [BricksLLM] key sk-bk********************************************** has been revoked] from pythagora
+2024-10-12 20:04:28,687 WARNING [core.cli.main] API check for openai failed with: [BricksLLM] key sk-bk********************************************** has been revoked
+2024-10-12 20:04:28,694 WARNING [core.llm.base] Key expired: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+Traceback (most recent call last):
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\base.py", line 189, in __call__
+    response, prompt_tokens, completion_tokens = await self._make_request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\anthropic_client.py", line 85, in _make_request
+    async with self.client.messages.stream(**completion_kwargs) as stream:
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\anthropic\lib\streaming\_messages.py", line 396, in __aenter__
+    self.__stream = await self.__api_request
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\anthropic\_base_client.py", line 1789, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\anthropic\_base_client.py", line 1492, in request
+    return await self._request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\anthropic\_base_client.py", line 1583, in _request
+    raise self._make_status_error_from_response(err.response) from None
+anthropic.AuthenticationError: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+2024-10-12 20:04:28,697 DEBUG [core.ui.ipc_client] Sending message: [API check for anthropic claude-3-5-sonnet-20240620 failed with: [BricksLLM] key sk-bk********************************************** has been revoked] from pythagora
+2024-10-12 20:04:28,698 WARNING [core.cli.main] API check for anthropic failed with: [BricksLLM] key sk-bk********************************************** has been revoked
+2024-10-12 20:04:28,699 WARNING [core.llm.base] Key expired: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+Traceback (most recent call last):
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\base.py", line 189, in __call__
+    response, prompt_tokens, completion_tokens = await self._make_request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\openai_client.py", line 51, in _make_request
+    stream = await self.client.chat.completions.create(**completion_kwargs)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\resources\chat\completions.py", line 1289, in create
+    return await self._post(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1826, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1519, in request
+    return await self._request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1620, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+2024-10-12 20:04:28,700 DEBUG [core.ui.ipc_client] Sending message: [API check for openai gpt-3.5-turbo failed with: [BricksLLM] key sk-bk********************************************** has been revoked] from pythagora
+2024-10-12 20:04:28,700 WARNING [core.cli.main] API check for openai failed with: [BricksLLM] key sk-bk********************************************** has been revoked
+2024-10-12 20:04:28,701 WARNING [core.llm.base] Key expired: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+Traceback (most recent call last):
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\base.py", line 189, in __call__
+    response, prompt_tokens, completion_tokens = await self._make_request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\llm\openai_client.py", line 51, in _make_request
+    stream = await self.client.chat.completions.create(**completion_kwargs)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\resources\chat\completions.py", line 1289, in create
+    return await self._post(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1826, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1519, in request
+    return await self._request(
+  File "c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\venv\lib\site-packages\openai\_base_client.py", line 1620, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'code': '401', 'message': '[BricksLLM] key sk-bk********************************************** has been revoked', 'type': ''}}
+2024-10-12 20:04:28,702 DEBUG [core.ui.ipc_client] Sending message: [API check for openai gpt-4-0125-preview failed with: [BricksLLM] key sk-bk********************************************** has been revoked] from pythagora
+2024-10-12 20:04:28,702 WARNING [core.cli.main] API check for openai failed with: [BricksLLM] key sk-bk********************************************** has been revoked
+2024-10-12 20:04:28,702 DEBUG [core.ui.ipc_client] Sending message: [Pythagora cannot start because the LLM API is not reachable.] from pythagora
+2024-10-12 20:04:28,703 DEBUG [core.telemetry] Telemetry.send(): sending telemetry data to https://api.pythagora.io/telemetry
+2024-10-12 20:04:28,988 DEBUG [core.ui.ipc_client] Closing the IPC connection to localhost:8125
+2024-10-13 12:40:39,805 DEBUG [core.db.setup] Running database migrations for sqlite:///pythagora.db (config: c:\Users\mathe\gpt-pilot-main\core\prompts\code-monkey\gpt-pilot\workspace\pdf-daily-helper\gpt-pilot\core\db\alembic.ini)
+2024-10-13 12:40:40,028 DEBUG [core.db.session] Connected to database sqlite+aiosqlite:///pythagora.db

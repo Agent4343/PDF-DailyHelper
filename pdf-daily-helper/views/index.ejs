@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/_head.ejs') %>
+  <body>
+<%- include('partials/_header.ejs') %>
+
+<main class="container mt-4" role="main">
+  <h1>Welcome to PDF Daily Helper</h1>
+
+  <form action="/api/upload" method="POST" enctype="multipart/form-data" class="mt-4">
+    <div class="mb-3">
+      <label for="pdfFile" class="form-label">Upload PDF File</label>
+      <input type="file" class="form-control" id="pdfFile" name="pdfFile" accept=".pdf" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Upload</button>
+  </form>
+
+  <div class="container mt-4">
+    <h2>Uploaded PDFs</h2>
+    <ul class="list-group">
+      <% pdfs.forEach(pdf => { %>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <%= pdf.originalName %>
+          <div>
+            <a href="/api/pdfs/<%= pdf._id %>/parsed" class="btn btn-info btn-sm" target="_blank">View Parsed Data</a>
+            <button class="btn btn-danger btn-sm delete-pdf" data-id="<%= pdf._id %>">Delete</button>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+</main>
+
+<%- include('partials/_footer.ejs') %>
+<script src="/js/viewParsedData.js"></script>
+</html>

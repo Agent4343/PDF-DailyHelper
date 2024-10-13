@@ -1,0 +1,45 @@
+mark {
+  background-color: yellow;
+  padding: 0.2em;
+}
+
+.pagination {
+  margin-top: 20px;
+}
+
+.search-result {
+  margin-bottom: 20px;
+}
+
+.search-result h5, .search-results .list-group-item h5 {
+  color: #007bff;
+}
+
+.search-result p, .search-results .list-group-item p {
+  margin-bottom: 5px;
+}
+
+.search-result small, .search-results .list-group-item small {
+  color: #6c757d;
+}
+
+.form-select {
+  width: 100%;
+}
+
+.search-filters {
+  margin-bottom: 20px;
+}
+
+.search-filters .form-group {
+  margin-bottom: 10px;
+}
+
+.search-results .list-group-item {
+  margin-bottom: 10px;
+}
+
+.search-results .list-group-item small {
+  display: block;
+  margin-top: 5px;
+}

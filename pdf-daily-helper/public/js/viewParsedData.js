@@ -1,78 +1,84 @@
-document.addEventListener('DOMContentLoaded', function() {
-  const parsedDataLinks = document.querySelectorAll('a[href^="/api/pdfs/"][href$="/parsed"]');
-
-  parsedDataLinks.forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      const url = this.getAttribute('href');
-
-      fetch(url)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          const modal = createModal(data);
-          document.body.appendChild(modal);
-          modal.style.display = 'block';
-        })
-        .catch(error => {
-          console.error('Error fetching parsed data:', error);
-          console.error(error.stack);
-        });
-    });
-  });
-
-  function createModal(data) {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'none';
-    modal.style.position = 'fixed';
-    modal.style.zIndex = '1';
-    modal.style.left = '0';
-    modal.style.top = '0';
-    modal.style.width = '100%';
-    modal.style.height = '100%';
-    modal.style.overflow = 'auto';
-    modal.style.backgroundColor = 'rgba(0,0,0,0.4)';
-
-    const modalContent = document.createElement('div');
-    modalContent.className = 'modal-content';
-    modalContent.style.backgroundColor = '#fefefe';
-    modalContent.style.margin = '15% auto';
-    modalContent.style.padding = '20px';
-    modalContent.style.border = '1px solid #888';
-    modalContent.style.width = '80%';
-
-    const closeBtn = document.createElement('span');
-    closeBtn.className = 'close';
-    closeBtn.innerHTML = '&times;';
-    closeBtn.style.color = '#aaa';
-    closeBtn.style.float = 'right';
-    closeBtn.style.fontSize = '28px';
-    closeBtn.style.fontWeight = 'bold';
-    closeBtn.style.cursor = 'pointer';
-
-    closeBtn.onclick = function() {
-      modal.style.display = 'none';
-      modal.remove();
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.addEventListener('click', async (event) => {
+    const target = event.target;
+    if (!target.matches('.view-parsed')) {
+      return;
     }
 
-    const content = document.createElement('div');
-    content.innerHTML = `
-      <h2>Parsed PDF Data</h2>
-      <h3>Extracted Text:</h3>
-      <pre>${data.extractedText}</pre>
-      <h3>Structure:</h3>
-      <pre>${JSON.stringify(data.structure, null, 2)}</pre>
-    `;
+    const pdfId = target.dataset.id;
+    if (!pdfId) {
+      return;
+    }
 
-    modalContent.appendChild(closeBtn);
-    modalContent.appendChild(content);
+    try {
+      const response = await fetch(`/api/pdfs/${pdfId}/parsed`);
+      if (!response.ok) {
+        throw new Error('Unable to fetch parsed PDF data.');
+      }
+      const data = await response.json();
+      openModal(data);
+    } catch (error) {
+      console.error('Error fetching parsed data:', error);
+      window.alert('Unable to load parsed PDF data at this time.');
+    }
+  });
+
+  function openModal(data) {
+    const modal = document.createElement('div');
+    modal.className = 'parsed-modal';
+    Object.assign(modal.style, {
+      position: 'fixed',
+      inset: '0',
+      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: '1050'
+    });
+
+    const modalContent = document.createElement('div');
+    modalContent.className = 'parsed-modal-content';
+    Object.assign(modalContent.style, {
+      backgroundColor: '#fff',
+      padding: '20px',
+      borderRadius: '8px',
+      maxWidth: '90%',
+      maxHeight: '80%',
+      overflowY: 'auto',
+      width: '800px',
+      boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+    });
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'btn-close';
+    closeButton.setAttribute('aria-label', 'Close');
+    closeButton.style.float = 'right';
+    closeButton.addEventListener('click', () => modal.remove());
+
+    const title = document.createElement('h2');
+    title.textContent = 'Parsed PDF Data';
+
+    const textHeading = document.createElement('h3');
+    textHeading.textContent = 'Extracted Text';
+
+    const textPre = document.createElement('pre');
+    textPre.textContent = data.extractedText || 'No extracted text available.';
+
+    const structureHeading = document.createElement('h3');
+    structureHeading.textContent = 'Structure';
+
+    const structurePre = document.createElement('pre');
+    structurePre.textContent = JSON.stringify(data.structure || {}, null, 2);
+
+    modalContent.appendChild(closeButton);
+    modalContent.appendChild(title);
+    modalContent.appendChild(textHeading);
+    modalContent.appendChild(textPre);
+    modalContent.appendChild(structureHeading);
+    modalContent.appendChild(structurePre);
+
     modal.appendChild(modalContent);
-
-    return modal;
+    document.body.appendChild(modal);
   }
 });

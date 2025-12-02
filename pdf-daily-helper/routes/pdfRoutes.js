@@ -1,68 +1,52 @@
 const express = require('express');
 const router = express.Router();
 const Pdf = require('../models/Pdf');
-const fs = require('fs');
+const IndexedData = require('../models/IndexedData');
+const { isAuthenticated } = require('./middleware/authMiddleware');
 
-router.get('/pdfs', async (req, res) => {
-  console.log('GET /pdfs route accessed');
+router.get('/pdfs', isAuthenticated, async (req, res) => {
   try {
-    const pdfs = await Pdf.find().sort({ uploadDate: -1 });
-    console.log('PDFs fetched successfully');
+    const pdfs = await Pdf.find({ user: req.session.userId })
+      .sort({ uploadDate: -1 })
+      .select('_id originalName uploadDate filename');
     res.json(pdfs);
   } catch (error) {
     console.error('Error fetching PDFs:', error);
-    console.error(error.stack);
-    res.status(500).json({ message: 'Error fetching PDFs', error: error.message });
+    res.status(500).json({ message: 'Error fetching PDFs' });
   }
 });
 
-router.delete('/pdfs/:id', async (req, res) => {
-  console.log(`DELETE /pdfs/${req.params.id} route accessed`);
+router.delete('/pdfs/:id', isAuthenticated, async (req, res) => {
   try {
-    const pdf = await Pdf.findById(req.params.id);
+    const pdf = await Pdf.findOne({ _id: req.params.id, user: req.session.userId });
     if (!pdf) {
-      console.log('PDF not found for deletion');
       return res.status(404).json({ message: 'PDF not found' });
     }
 
-    // Delete the file from the filesystem
-    fs.unlink(pdf.path, async (err) => {
-      if (err) {
-        console.error('Error deleting file:', err);
-        console.error(err.stack);
-        return res.status(500).json({ message: 'Error deleting file', error: err.message });
-      }
+    await IndexedData.deleteMany({ pdfId: pdf._id });
+    await pdf.deleteOne();
 
-      console.log(`File ${pdf.path} deleted successfully`);
-      // Delete the document from the database
-      await Pdf.findByIdAndDelete(req.params.id);
-      console.log(`PDF with id ${req.params.id} deleted successfully from database`);
-      res.json({ message: 'PDF deleted successfully' });
-    });
+    res.json({ message: 'PDF deleted successfully' });
   } catch (error) {
     console.error('Error deleting PDF:', error);
-    console.error(error.stack);
-    res.status(500).json({ message: 'Error deleting PDF', error: error.message });
+    res.status(500).json({ message: 'Error deleting PDF' });
   }
 });
 
-router.get('/pdfs/:id/parsed', async (req, res) => {
-  console.log(`GET /pdfs/${req.params.id}/parsed route accessed`);
+router.get('/pdfs/:id/parsed', isAuthenticated, async (req, res) => {
   try {
-    const pdf = await Pdf.findById(req.params.id);
+    const pdf = await Pdf.findOne({ _id: req.params.id, user: req.session.userId }).select('extractedText structure');
     if (!pdf) {
-      console.log(`PDF with ID ${req.params.id} not found`);
-      return res.status(404).send('PDF not found');
+      return res.status(404).json({ message: 'PDF not found' });
     }
-    console.log('Parsed PDF data fetched successfully');
+
     res.json({
-      extractedText: pdf.extractedText,
-      structure: pdf.structure
+      extractedText: pdf.extractedText || '',
+      structure: pdf.structure || {}
     });
   } catch (error) {
     console.error('Error fetching parsed PDF data:', error);
-    console.error(error.stack);
-    res.status(500).send('Error fetching parsed PDF data');
+    res.status(500).json({ message: 'Error fetching parsed PDF data' });
   }
 });
 

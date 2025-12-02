@@ -1,104 +1,151 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
   const searchForm = document.getElementById('searchForm');
   const searchResults = document.getElementById('searchResults');
   const pagination = document.getElementById('pagination');
+
+  if (!searchForm || !searchResults || !pagination) {
+    return;
+  }
+
   let currentPage = 1;
   const resultsPerPage = 10;
 
-  searchForm.addEventListener('submit', function(e) {
-    e.preventDefault();
+  searchForm.addEventListener('submit', (event) => {
+    event.preventDefault();
     currentPage = 1;
     performSearch();
   });
 
-  function performSearch() {
-    console.log('Performing search with form data:', {
-      query: document.getElementById('searchQuery').value,
+  async function performSearch() {
+    const query = document.getElementById('searchQuery').value.trim();
+    if (!query) {
+      renderMessage('Please enter a search query.');
+      return;
+    }
+
+    const searchParams = new URLSearchParams({
+      query,
+      page: currentPage,
+      limit: resultsPerPage,
       dateFilter: document.getElementById('dateFilter').value,
       fileNameFilter: document.getElementById('fileNameFilter').value,
       pageNumberFilter: document.getElementById('pageNumberFilter').value
     });
-    console.log('Search initiated for query:', document.getElementById('searchQuery').value);
-    const query = document.getElementById('searchQuery').value;
-    const dateFilter = document.getElementById('dateFilter').value;
-    const fileNameFilter = document.getElementById('fileNameFilter').value;
-    const pageNumberFilter = document.getElementById('pageNumberFilter').value;
 
-    const searchParams = new URLSearchParams({
-      query: query,
-      page: currentPage,
-      limit: resultsPerPage,
-      dateFilter: dateFilter,
-      fileNameFilter: fileNameFilter,
-      pageNumberFilter: pageNumberFilter
-    });
+    try {
+      const response = await fetch(`/api/search?${searchParams.toString()}`);
+      if (!response.ok) {
+        throw new Error('An error occurred while searching.');
+      }
 
-    fetch(`/api/search?${searchParams.toString()}`)
-      .then(response => response.json())
-      .then(data => {
-        displaySearchResults(data);
-        displayPagination(data);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        console.error(error.stack);
-        searchResults.innerHTML = '<p class="text-danger">An error occurred while searching. Please try again.</p>';
-      });
+      const data = await response.json();
+      renderResults(data.results, query);
+      renderPagination(data.totalPages || 0);
+    } catch (error) {
+      console.error('Error performing search:', error);
+      renderMessage('An error occurred while searching. Please try again.');
+    }
   }
 
-  function displaySearchResults(data) {
-    if (data.results.length === 0) {
-      searchResults.innerHTML = '<p>No results found.</p>';
+  function renderResults(results, query) {
+    if (!Array.isArray(results) || results.length === 0) {
+      renderMessage('No results found.');
       return;
     }
 
-    let resultsHtml = '<h2>Search Results</h2><ul class="list-group">';
-    data.results.forEach(result => {
-      resultsHtml += `
-        <li class="list-group-item">
-          <h5>${result.pdfId.originalName}</h5>
-          <p>${highlightSearchTerms(result.content.substring(0, 200), document.getElementById('searchQuery').value)}...</p>
-          <small>Page: ${result.pageNumber} | Uploaded: ${new Date(result.createdAt).toLocaleDateString()}</small>
-        </li>
-      `;
-    });
-    resultsHtml += '</ul>';
+    searchResults.innerHTML = '';
+    const list = document.createElement('ul');
+    list.className = 'list-group';
 
-    searchResults.innerHTML = resultsHtml;
+    results.forEach((result) => {
+      const listItem = document.createElement('li');
+      listItem.className = 'list-group-item';
+
+      const title = document.createElement('h5');
+      title.textContent = result.originalName || result.filename || 'Untitled PDF';
+
+      const snippet = document.createElement('p');
+      const snippetFragment = createHighlightedSnippet(result.content || '', query);
+      snippet.appendChild(snippetFragment);
+      snippet.appendChild(document.createTextNode('...'));
+
+      const meta = document.createElement('small');
+      const uploadedDate = result.createdAt ? new Date(result.createdAt).toLocaleDateString() : 'Unknown date';
+      meta.textContent = `Page: ${result.pageNumber} | Uploaded: ${uploadedDate}`;
+
+      listItem.appendChild(title);
+      listItem.appendChild(snippet);
+      listItem.appendChild(meta);
+
+      list.appendChild(listItem);
+    });
+
+    searchResults.appendChild(list);
   }
 
-  function displayPagination(data) {
-    const totalPages = data.totalPages;
-    let paginationHtml = '';
-
-    for (let i = 1; i <= totalPages; i++) {
-      paginationHtml += `
-        <li class="page-item ${i === currentPage ? 'active' : ''}">
-          <a class="page-link" href="#" data-page="${i}">${i}</a>
-        </li>
-      `;
+  function renderPagination(totalPages) {
+    pagination.innerHTML = '';
+    if (totalPages <= 1) {
+      return;
     }
 
-    pagination.innerHTML = paginationHtml;
+    for (let i = 1; i <= totalPages; i += 1) {
+      const pageItem = document.createElement('li');
+      pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
 
-    pagination.querySelectorAll('.page-link').forEach(link => {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        currentPage = parseInt(this.dataset.page);
+      const link = document.createElement('a');
+      link.className = 'page-link';
+      link.href = '#';
+      link.textContent = i;
+      link.dataset.page = i.toString();
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        currentPage = Number(link.dataset.page);
         performSearch();
       });
-    });
+
+      pageItem.appendChild(link);
+      pagination.appendChild(pageItem);
+    }
   }
 
-  function highlightSearchTerms(text, searchQuery) {
-    const words = searchQuery.split(' ').filter(word => word.length > 0);
-    let highlightedText = text;
+  function renderMessage(message) {
+    searchResults.innerHTML = `<p>${message}</p>`;
+    pagination.innerHTML = '';
+  }
 
-    words.forEach(word => {
-      const regex = new RegExp(word, 'gi');
-      highlightedText = highlightedText.replace(regex, match => `<mark>${match}</mark>`);
-    });
+  function createHighlightedSnippet(text, query) {
+    const snippet = text.substring(0, 200);
+    const fragment = document.createDocumentFragment();
+    const terms = query.split(/\s+/).filter(Boolean);
 
-    return highlightedText;
+    if (terms.length === 0) {
+      fragment.appendChild(document.createTextNode(snippet));
+      return fragment;
+    }
+
+    const regex = new RegExp(terms.map(escapeRegex).join('|'), 'gi');
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(snippet)) !== null) {
+      if (match.index > lastIndex) {
+        fragment.appendChild(document.createTextNode(snippet.slice(lastIndex, match.index)));
+      }
+      const mark = document.createElement('mark');
+      mark.textContent = match[0];
+      fragment.appendChild(mark);
+      lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < snippet.length) {
+      fragment.appendChild(document.createTextNode(snippet.slice(lastIndex)));
+    }
+
+    return fragment;
+  }
+
+  function escapeRegex(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 });

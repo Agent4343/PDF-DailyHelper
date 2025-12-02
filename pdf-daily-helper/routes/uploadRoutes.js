@@ -3,63 +3,53 @@ const router = express.Router();
 const multer = require('multer');
 const Pdf = require('../models/Pdf');
 const { parsePdf } = require('../services/pdfParseService');
-
-// Configure multer for file upload
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
+const { isAuthenticated } = require('./middleware/authMiddleware');
 
 const upload = multer({
-  storage: storage,
-  fileFilter: function (req, file, cb) {
+  storage: multer.memoryStorage(),
+  fileFilter: (req, file, cb) => {
     if (file.mimetype !== 'application/pdf') {
-      cb(new Error('Only PDF files are allowed!'), false);
+      cb(new Error('Only PDF files are allowed!'));
     } else {
       cb(null, true);
     }
   },
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB file size limit
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
 
-router.post('/upload', upload.single('pdfFile'), async (req, res) => {
-  console.log('Upload route accessed');
+const runUpload = (req, res, next) => {
+  upload.single('pdfFile')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+    return next();
+  });
+};
+
+router.post('/upload', isAuthenticated, runUpload, async (req, res) => {
   if (!req.file) {
-    console.log('No file uploaded');
-    return res.status(400).send('No file uploaded.');
+    return res.status(400).json({ message: 'No file uploaded.' });
   }
 
+  const sanitizedName = req.file.originalname.replace(/[/\\?%*:|"<>]/g, '-');
+  const filename = `${Date.now()}-${sanitizedName}`;
+
   try {
-    console.log('Saving PDF to database');
-    const newPdf = new Pdf({
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      path: req.file.path,
-      user: req.session.userId
+    const newPdf = await Pdf.create({
+      filename,
+      originalName: sanitizedName,
+      user: req.session.userId,
+      mimeType: req.file.mimetype,
+      fileSize: req.file.size,
+      fileData: req.file.buffer
     });
 
-    await newPdf.save();
-    console.log('PDF saved to database:', newPdf);
+    await parsePdf(newPdf._id, req.file.buffer);
 
-    console.log('Initiating PDF parsing');
-    try {
-      await parsePdf(newPdf._id);
-      console.log('PDF parsed successfully');
-    } catch (error) {
-      console.error('Error parsing PDF:', error);
-      console.error(error.stack);
-    }
-
-    console.log('Sending success response to client');
-    res.status(200).send('File uploaded successfully and parsing initiated.');
+    return res.status(200).json({ message: 'File uploaded successfully and parsing initiated.' });
   } catch (error) {
     console.error('Error in upload route:', error);
-    console.error(error.stack);
-    res.status(500).send('Error uploading file.');
+    return res.status(500).json({ message: 'Error uploading file.' });
   }
 });
 

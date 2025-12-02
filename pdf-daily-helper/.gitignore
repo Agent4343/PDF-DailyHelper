@@ -1,0 +1,15 @@
+.env
+.env.local
+node_modules/
+uploads/
+gpt-pilot/
+pythagora.db
+pythagora.log
+.DS_Store
+*.log
+npm-debug.log*
+coverage/
+.vercel/
+.vercel_cache/
+dist/
+tmp/

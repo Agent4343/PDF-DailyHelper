@@ -1,6 +1,7 @@
 const pdf = require('pdf-parse');
 const Pdf = require('../models/Pdf');
 const IndexedData = require('../models/IndexedData');
+const { upsertPdfChunks } = require('./vectorService');
 
 async function parsePdf(pdfId, fileBuffer) {
   const pdfDoc = await Pdf.findById(pdfId);
@@ -39,6 +40,18 @@ async function parsePdf(pdfId, fileBuffer) {
     filename: pdfDoc.filename,
     originalName: pdfDoc.originalName
   });
+
+  try {
+    await upsertPdfChunks({
+      pdfId: pdfDoc._id,
+      userId: pdfDoc.user,
+      text,
+      filename: pdfDoc.filename,
+      originalName: pdfDoc.originalName
+    });
+  } catch (error) {
+    console.error('Failed to upsert embeddings:', error);
+  }
 
   return { text, structure };
 }

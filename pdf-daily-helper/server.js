@@ -10,6 +10,7 @@ const authRoutes = require('./routes/authRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const pdfRoutes = require('./routes/pdfRoutes');
 const searchRoutes = require('./routes/searchRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 const Pdf = require('./models/Pdf');
 const { isAuthenticated } = require('./routes/middleware/authMiddleware');
 
@@ -73,6 +74,7 @@ app.use(authRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api', pdfRoutes);
 app.use('/', searchRoutes);
+app.use('/', chatRoutes);
 
 app.get('/', isAuthenticated, async (req, res) => {
   try {

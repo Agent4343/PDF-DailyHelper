@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Pdf = require('../models/Pdf');
 const IndexedData = require('../models/IndexedData');
+const { deletePdfChunks } = require('../services/vectorService');
 const { isAuthenticated } = require('./middleware/authMiddleware');
 
 router.get('/pdfs', isAuthenticated, async (req, res) => {
@@ -24,6 +25,7 @@ router.delete('/pdfs/:id', isAuthenticated, async (req, res) => {
     }
 
     await IndexedData.deleteMany({ pdfId: pdf._id });
+    await deletePdfChunks(pdf._id, req.session.userId);
     await pdf.deleteOne();
 
     res.json({ message: 'PDF deleted successfully' });

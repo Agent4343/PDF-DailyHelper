@@ -261,6 +261,23 @@ body {
   background: #fff;
 }
 
+.history-entry {
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border: 1px solid rgba(226, 232, 240, 0.12);
+}
+
+.history-entry + .history-entry {
+  margin-top: 12px;
+}
+
+.history-entry .history-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .skeleton {
   background: linear-gradient(90deg, #e2e8f0 25%, #f8fafc 37%, #e2e8f0 63%);
   background-size: 400% 100%;

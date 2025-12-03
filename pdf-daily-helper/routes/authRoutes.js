@@ -17,7 +17,7 @@ router.post('/auth/register', async (req, res) => {
   }
 
   try {
-    const user = new User({ username, password });
+    const user = new User({ username, password, role: 'user' });
     await user.save();
     res.redirect('/auth/login');
   } catch (error) {
@@ -51,6 +51,7 @@ router.post('/auth/login', async (req, res) => {
     }
 
     req.session.userId = user._id;
+    req.session.role = user.role;
     return res.redirect('/');
   } catch (error) {
     logger.error({ err: error, username }, 'Login error');

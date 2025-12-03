@@ -12,10 +12,12 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const pdfRoutes = require('./routes/pdfRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const ownerRoutes = require('./routes/ownerRoutes');
 const Pdf = require('./models/Pdf');
 const { isAuthenticated } = require('./routes/middleware/authMiddleware');
 const logger = require('./services/logger');
 const { AVAILABLE_OCR_PROVIDERS } = require('./services/ocrService');
+const { ensureOwnerAccount } = require('./services/ownerSetup');
 
 if (!process.env.DATABASE_URL || !process.env.SESSION_SECRET) {
   throw new Error('Missing DATABASE_URL or SESSION_SECRET. Please configure your environment variables.');
@@ -45,7 +47,9 @@ async function initializeDatabase() {
   return dbConnectionPromise;
 }
 
-initializeDatabase().catch((err) => {
+initializeDatabase()
+  .then(() => ensureOwnerAccount())
+  .catch((err) => {
   logger.error({ err }, 'Database connection error');
   throw err;
 });
@@ -123,6 +127,7 @@ app.use('/api', uploadRoutes);
 app.use('/api', pdfRoutes);
 app.use('/', searchRoutes);
 app.use('/', chatRoutes);
+app.use('/', ownerRoutes);
 
 app.get('/healthz', (req, res) => {
   res.json({

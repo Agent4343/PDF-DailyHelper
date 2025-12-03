@@ -2,6 +2,7 @@ const pdf = require('pdf-parse');
 const Pdf = require('../models/Pdf');
 const IndexedData = require('../models/IndexedData');
 const { upsertPdfChunks } = require('./vectorService');
+const { extractTextWithOcr, DEFAULT_TRIGGER_THRESHOLD } = require('./ocrService');
 
 async function parsePdf(pdfId, fileBuffer) {
   const pdfDoc = await Pdf.findById(pdfId);
@@ -17,11 +18,23 @@ async function parsePdf(pdfId, fileBuffer) {
   }
 
   const data = await pdf(sourceBuffer);
-  const text = data.text || '';
+  let text = data.text || '';
   const structure = {
     numPages: data.numpages || 0,
     info: data.info || {}
   };
+
+  if (text.trim().length < DEFAULT_TRIGGER_THRESHOLD) {
+    try {
+      const ocrText = await extractTextWithOcr(sourceBuffer);
+      if (ocrText) {
+        text = ocrText;
+        structure.ocrApplied = true;
+      }
+    } catch (error) {
+      console.error('OCR extraction failed:', error);
+    }
+  }
 
   pdfDoc.extractedText = text;
   pdfDoc.structure = structure;

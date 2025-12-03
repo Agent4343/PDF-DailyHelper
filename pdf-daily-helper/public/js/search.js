@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchForm = document.getElementById('searchForm');
   const searchResults = document.getElementById('searchResults');
   const pagination = document.getElementById('pagination');
+  const activeFiltersContainer = document.getElementById('activeFilters');
 
   if (!searchForm || !searchResults || !pagination) {
     return;
@@ -9,6 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentPage = 1;
   const resultsPerPage = 10;
+
+  renderMessage('Run a search to see results.');
+  updateActiveFilters();
 
   searchForm.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -18,18 +22,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function performSearch() {
     const query = document.getElementById('searchQuery').value.trim();
+    const filters = getFilters();
+
     if (!query) {
       renderMessage('Please enter a search query.');
       return;
     }
 
+    updateActiveFilters(filters);
+    showSkeleton();
+
     const searchParams = new URLSearchParams({
       query,
       page: currentPage,
       limit: resultsPerPage,
-      dateFilter: document.getElementById('dateFilter').value,
-      fileNameFilter: document.getElementById('fileNameFilter').value,
-      pageNumberFilter: document.getElementById('pageNumberFilter').value
+      ...filters
     });
 
     try {
@@ -47,6 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function getFilters() {
+    return {
+      dateFilter: document.getElementById('dateFilter').value,
+      fileNameFilter: document.getElementById('fileNameFilter').value.trim(),
+      pageNumberFilter: document.getElementById('pageNumberFilter').value
+    };
+  }
+
+  function showSkeleton() {
+    searchResults.innerHTML = '<div class="skeleton mb-3" style="height: 140px;"></div>';
+  }
+
   function renderResults(results, query) {
     if (!Array.isArray(results) || results.length === 0) {
       renderMessage('No results found.');
@@ -54,33 +73,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     searchResults.innerHTML = '';
-    const list = document.createElement('ul');
-    list.className = 'list-group';
 
     results.forEach((result) => {
-      const listItem = document.createElement('li');
-      listItem.className = 'list-group-item';
+      const card = document.createElement('article');
+      card.className = 'search-results-card';
 
-      const title = document.createElement('h5');
-      title.textContent = result.originalName || result.filename || 'Untitled PDF';
+      const titleRow = document.createElement('div');
+      titleRow.className = 'd-flex justify-content-between align-items-start gap-3';
 
-      const snippet = document.createElement('p');
+      const title = document.createElement('div');
+      title.innerHTML = `
+        <h5 class="mb-1">${result.originalName || result.filename || 'Untitled PDF'}</h5>
+        <small class="text-muted">Page ${result.pageNumber} · ${formatDate(result.createdAt)}</small>
+      `;
+
+      titleRow.appendChild(title);
+      card.appendChild(titleRow);
+
+      const snippet = document.createElement('div');
+      snippet.className = 'search-snippet mt-3';
       const snippetFragment = createHighlightedSnippet(result.content || '', query);
       snippet.appendChild(snippetFragment);
-      snippet.appendChild(document.createTextNode('...'));
+      snippet.appendChild(document.createTextNode('…'));
+      card.appendChild(snippet);
 
-      const meta = document.createElement('small');
-      const uploadedDate = result.createdAt ? new Date(result.createdAt).toLocaleDateString() : 'Unknown date';
-      meta.textContent = `Page: ${result.pageNumber} | Uploaded: ${uploadedDate}`;
-
-      listItem.appendChild(title);
-      listItem.appendChild(snippet);
-      listItem.appendChild(meta);
-
-      list.appendChild(listItem);
+      searchResults.appendChild(card);
     });
-
-    searchResults.appendChild(list);
   }
 
   function renderPagination(totalPages) {
@@ -110,12 +128,47 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderMessage(message) {
-    searchResults.innerHTML = `<p>${message}</p>`;
+    searchResults.innerHTML = `
+      <div class="search-results-card text-center text-muted">
+        ${message}
+      </div>
+    `;
     pagination.innerHTML = '';
   }
 
+  function updateActiveFilters(filters = getFilters()) {
+    if (!activeFiltersContainer) {
+      return;
+    }
+
+    const chips = [];
+    if (filters.dateFilter) {
+      chips.push(createFilterChip(`Date: ${filters.dateFilter}`));
+    }
+    if (filters.fileNameFilter) {
+      chips.push(createFilterChip(`File includes "${filters.fileNameFilter}"`));
+    }
+    if (filters.pageNumberFilter) {
+      chips.push(createFilterChip(`Page ${filters.pageNumberFilter}`));
+    }
+
+    activeFiltersContainer.innerHTML = '';
+    if (chips.length === 0) {
+      activeFiltersContainer.innerHTML = '<span class="text-muted">No filters applied.</span>';
+    } else {
+      chips.forEach((chip) => activeFiltersContainer.appendChild(chip));
+    }
+  }
+
+  function createFilterChip(label) {
+    const chip = document.createElement('span');
+    chip.className = 'search-filter-chip';
+    chip.textContent = label;
+    return chip;
+  }
+
   function createHighlightedSnippet(text, query) {
-    const snippet = text.substring(0, 200);
+    const snippet = text.substring(0, 220);
     const fragment = document.createDocumentFragment();
     const terms = query.split(/\s+/).filter(Boolean);
 
@@ -147,5 +200,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function escapeRegex(value) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function formatDate(value) {
+    if (!value) return 'Unknown date';
+    try {
+      return new Date(value).toLocaleDateString();
+    } catch {
+      return 'Unknown date';
+    }
   }
 });

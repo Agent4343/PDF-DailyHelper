@@ -9,7 +9,7 @@ router.get('/pdfs', isAuthenticated, async (req, res) => {
   try {
     const pdfs = await Pdf.find({ user: req.session.userId })
       .sort({ uploadDate: -1 })
-      .select('_id originalName uploadDate filename');
+      .select('_id originalName uploadDate filename structure');
     res.json(pdfs);
   } catch (error) {
     console.error('Error fetching PDFs:', error);

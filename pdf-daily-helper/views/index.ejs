@@ -4,36 +4,74 @@
   <body>
 <%- include('partials/_header.ejs') %>
 
-<main class="container mt-4" role="main">
-  <h1>Welcome to PDF Daily Helper</h1>
-
-  <form id="uploadForm" action="/api/upload" method="POST" enctype="multipart/form-data" class="mt-4">
-    <div class="mb-3">
-      <label for="pdfFile" class="form-label">Upload PDF File</label>
-      <input type="file" class="form-control" id="pdfFile" name="pdfFile" accept=".pdf" required>
+<main class="container py-4" role="main">
+  <section class="page-hero mb-4">
+    <div class="d-flex flex-column gap-2 position-relative">
+      <span class="badge-soft align-self-start">Dashboard</span>
+      <h1 class="display-6 fw-semibold mb-1">Organize, search, and chat with your PDFs</h1>
+      <p class="lead text-white-50 mb-0">Upload files, run OCR automatically, and get instant answers powered by your private knowledge base.</p>
     </div>
-    <button type="submit" class="btn btn-primary">Upload</button>
-  </form>
+  </section>
 
-  <div id="uploadStatus" role="status" aria-live="polite" class="mt-3" hidden></div>
+  <div class="dashboard-grid">
+    <section class="card-elevated" aria-label="Upload PDF">
+      <div class="card-header">
+        <div>
+          <h2 class="h4 mb-0">Upload a PDF</h2>
+          <small class="text-muted">Drag a file or browse from your device</small>
+        </div>
+        <span class="badge-soft">OCR Ready</span>
+      </div>
 
-  <div class="container mt-4">
-    <h2>Uploaded PDFs</h2>
-    <ul class="list-group" id="pdfList">
-      <% if (pdfs.length === 0) { %>
-        <li class="list-group-item">No PDFs uploaded yet.</li>
-      <% } else { %>
-        <% pdfs.forEach(pdf => { %>
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span><%= pdf.originalName %> (Uploaded on: <%= pdf.uploadDate.toLocaleString() %>)</span>
+      <div class="dropzone" id="uploadDropzone">
+        <p class="mb-1 fw-semibold">Drop your PDF here</p>
+        <p class="text-muted small mb-3">PDF up to 5MB · OCR runs automatically when needed</p>
+        <form id="uploadForm" action="/api/upload" method="POST" enctype="multipart/form-data">
+          <input type="file" class="form-control mb-3" id="pdfFile" name="pdfFile" accept=".pdf" required>
+          <button type="submit" class="btn btn-primary w-100" id="uploadButton">Upload PDF</button>
+        </form>
+        <div id="uploadStatus" role="status" aria-live="polite" hidden class="mt-3 text-start"></div>
+      </div>
+    </section>
+
+    <section class="card-elevated" aria-label="Recent uploads">
+      <div class="card-header">
+        <div>
+          <h2 class="h4 mb-0">Recently Uploaded</h2>
+          <small class="text-muted">Manage and preview your files</small>
+        </div>
+        <span class="badge-soft"><%= pdfs.length %> file<%= pdfs.length === 1 ? '' : 's' %></span>
+      </div>
+
+      <ul class="timeline" id="pdfList">
+        <% if (pdfs.length === 0) { %>
+          <li class="timeline-item">
             <div>
-              <button type="button" class="btn btn-info btn-sm me-2 view-parsed" data-id="<%= pdf._id %>">View Parsed Data</button>
-              <button type="button" class="btn btn-danger btn-sm delete-pdf" data-id="<%= pdf._id %>">Delete</button>
+              <p class="mb-0 fw-semibold">No PDFs yet</p>
+              <small class="text-muted">Upload your first document to get started</small>
             </div>
           </li>
-        <% }) %>
-      <% } %>
-    </ul>
+        <% } else { %>
+          <% pdfs.forEach(pdf => { %>
+            <li class="timeline-item flex-column flex-md-row">
+              <div class="flex-grow-1">
+                <p class="mb-0 fw-semibold"><%= pdf.originalName %></p>
+                <small class="text-muted">
+                  Uploaded on <%= pdf.uploadDate.toLocaleString() %>
+                  <% if (pdf.structure && pdf.structure.ocrApplied) { %>
+                    · <span class="status-chip warning">OCR enhanced</span>
+                  <% } %>
+                </small>
+              </div>
+              <div class="mt-2 mt-md-0 d-flex gap-2 align-self-stretch">
+                <button type="button" class="btn btn-outline-secondary btn-sm view-parsed" data-id="<%= pdf._id %>">Preview</button>
+                <button type="button" class="btn btn-outline-danger btn-sm delete-pdf" data-id="<%= pdf._id %>">Delete</button>
+              </div>
+            </li>
+          <% }) %>
+        <% } %>
+      </ul>
+    </section>
   </div>
 </main>
 

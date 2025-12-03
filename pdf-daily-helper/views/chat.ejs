@@ -4,25 +4,42 @@
 <body>
 <%- include('partials/_header.ejs') %>
 
-<main class="container mt-4 chat-container" role="main">
-  <h1>Chat with Your PDFs</h1>
-
-  <div id="chatMessages" class="card chat-messages" aria-live="polite" aria-label="Chat transcript">
-    <div class="card-body">
-      <p class="text-muted mb-0">Ask a question to get started.</p>
+<main class="container py-4 chat-container" role="main">
+  <section class="page-hero mb-4">
+    <div class="d-flex flex-column gap-2 position-relative">
+      <span class="badge-soft align-self-start">Conversational RAG</span>
+      <h1 class="display-6 fw-semibold mb-1">Ask natural questions about your PDFs</h1>
+      <p class="lead text-white-50 mb-0">We retrieve the most relevant snippets, cite the sources, and produce grounded answers.</p>
     </div>
+  </section>
+
+  <div class="chat-wrapper">
+    <section class="chat-panel" aria-label="Chat transcript">
+      <div id="chatMessages" class="chat-messages" aria-live="polite">
+        <div class="text-center text-muted">Start the conversation by asking a question about your documents.</div>
+      </div>
+      <form id="chatForm" class="chat-form">
+        <label for="chatInput" class="form-label fw-semibold">Your question</label>
+        <textarea class="form-control mb-3" id="chatInput" name="message" rows="3" placeholder="Summarize the payment terms for Project Atlas" required></textarea>
+        <div class="d-flex align-items-center gap-3">
+          <button type="submit" class="btn btn-primary px-4" id="chatSubmit">Send</button>
+          <div id="chatStatus" class="text-muted" role="status" aria-live="polite" hidden></div>
+        </div>
+      </form>
+    </section>
+
+    <aside class="card-elevated dark">
+      <div class="card-header">
+        <div>
+          <h2 class="h5 mb-0">Conversation history</h2>
+          <small class="text-white-50">Your latest prompts in this session</small>
+        </div>
+      </div>
+      <div id="chatHistorySidebar" class="d-flex flex-column gap-3">
+        <p class="text-white-50 mb-0">No interactions yet.</p>
+      </div>
+    </aside>
   </div>
-
-  <form id="chatForm" class="mt-3">
-    <div class="mb-3">
-      <label for="chatInput" class="form-label">Your question</label>
-      <textarea class="form-control" id="chatInput" name="message" rows="3" placeholder="What would you like to know?" required></textarea>
-    </div>
-    <div class="d-flex align-items-center gap-3">
-      <button type="submit" class="btn btn-primary" id="chatSubmit">Send</button>
-      <div id="chatStatus" class="text-muted" role="status" aria-live="polite" hidden></div>
-    </div>
-  </form>
 </main>
 
 <%- include('partials/_footer.ejs', { extraScripts: ['/js/chat.js'] }) %>

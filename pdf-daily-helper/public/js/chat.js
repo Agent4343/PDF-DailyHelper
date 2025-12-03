@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const messagesContainer = document.getElementById('chatMessages');
   const submitButton = document.getElementById('chatSubmit');
   const statusEl = document.getElementById('chatStatus');
+  const historySidebar = document.getElementById('chatHistorySidebar');
 
   if (!form || !input || !messagesContainer) {
     return;
@@ -17,8 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!message) return;
 
     appendMessage('user', message);
+    pushHistory('You', message);
     input.value = '';
-    setLoadingState(true, 'Thinking...');
+    setLoadingState(true, 'Thinking…');
 
     try {
       const response = await fetch('/api/chat', {
@@ -33,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const payload = await response.json();
       appendMessage('assistant', payload.answer, payload.sources || []);
+      pushHistory('Assistant', payload.answer);
 
       history = [
         ...history,
@@ -48,14 +51,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function appendMessage(role, text, sources = []) {
-    const body = ensureMessagesBody();
+    if (!messagesContainer.dataset.initialized) {
+      messagesContainer.innerHTML = '';
+      messagesContainer.dataset.initialized = 'true';
+    }
+
     const wrapper = document.createElement('div');
     wrapper.className = `chat-message chat-message-${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'chat-avatar';
+    avatar.textContent = role === 'assistant' ? 'AI' : 'You';
 
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble';
     bubble.textContent = text;
 
+    wrapper.appendChild(avatar);
     wrapper.appendChild(bubble);
 
     if (role === 'assistant' && Array.isArray(sources) && sources.length > 0) {
@@ -63,28 +75,41 @@ document.addEventListener('DOMContentLoaded', () => {
       sourcesList.className = 'chat-sources';
       sources.forEach((source, index) => {
         const item = document.createElement('li');
-        item.textContent = `${source.original_name || source.filename || 'Source'} (chunk #${source.chunk_index ?? '—'})`;
+        item.textContent = `${index + 1}. ${source.original_name || source.filename || 'Source'} (chunk #${source.chunk_index ?? '—'})`;
         sourcesList.appendChild(item);
       });
-      wrapper.appendChild(sourcesList);
+      bubble.appendChild(sourcesList);
     }
 
-    body.appendChild(wrapper);
-    body.scrollTop = body.scrollHeight;
+    messagesContainer.appendChild(wrapper);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
-  function ensureMessagesBody() {
-    let body = messagesContainer.querySelector('.card-body');
-    if (!body) {
-      body = document.createElement('div');
-      body.className = 'card-body';
-      messagesContainer.appendChild(body);
+  function pushHistory(label, content) {
+    if (!historySidebar) return;
+    if (!historySidebar.dataset.initialized) {
+      historySidebar.innerHTML = '';
+      historySidebar.dataset.initialized = 'true';
     }
-    if (!body.dataset.initialized) {
-      body.innerHTML = '';
-      body.dataset.initialized = 'true';
+
+    const entry = document.createElement('div');
+    entry.className = 'p-3 rounded-3 text-white-75';
+    entry.style.backgroundColor = label === 'You' ? 'rgba(37, 99, 235, 0.25)' : 'rgba(148, 163, 184, 0.15)';
+
+    const meta = document.createElement('small');
+    meta.className = 'text-uppercase d-block mb-1 text-white-50';
+    meta.textContent = label;
+
+    const body = document.createElement('div');
+    body.textContent = content;
+
+    entry.appendChild(meta);
+    entry.appendChild(body);
+    historySidebar.prepend(entry);
+
+    while (historySidebar.childElementCount > 6) {
+      historySidebar.removeChild(historySidebar.lastElementChild);
     }
-    return body;
   }
 
   function setLoadingState(isLoading, message = '') {

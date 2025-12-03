@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "rootDirectory": "pdf-daily-helper",
   "functions": {
     "api/index.js": {
       "memory": 1024,

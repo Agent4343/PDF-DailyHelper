@@ -1,23 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('partials/_head.ejs') %>
-  <body>
+<body>
 <%- include('partials/_header.ejs') %>
-    <main role="main">
-      <div class="container mt-5">
-        <h2>Register</h2>
-        <form action="/auth/register" method="POST">
-          <div class="mb-3">
-            <input type="text" name="username" placeholder="Username" required class="form-control">
-          </div>
-          <div class="mb-3">
-            <input type="password" name="password" placeholder="Password" required class="form-control">
-          </div>
-          <div class="mb-3">
-            <button type="submit" class="btn btn-primary mr-2">Register</button>
-            Already have an account? <a href="/auth/login">Login</a>
-          </div>
-        </form>
+<main class="container py-5" role="main">
+  <section class="page-hero mb-4">
+    <div class="d-flex flex-column gap-2 position-relative">
+      <span class="badge-soft align-self-start">Create account</span>
+      <h1 class="h3 fw-semibold mb-0">Set up your workspace</h1>
+      <p class="text-white-50 mb-0">Choose a username and password to upload, search, and chat with your PDFs.</p>
+    </div>
+  </section>
+
+  <div class="card-elevated" style="max-width: 480px; margin: 0 auto;">
+    <form action="/auth/register" method="POST">
+      <div class="mb-3">
+        <label class="form-label fw-semibold" for="username">Username</label>
+        <input id="username" type="text" name="username" placeholder="jane.doe" required class="form-control form-control-lg">
       </div>
-    </main>
+      <div class="mb-4">
+        <label class="form-label fw-semibold" for="password">Password</label>
+        <input id="password" type="password" name="password" placeholder="••••••••" required class="form-control form-control-lg">
+      </div>
+      <div class="d-flex align-items-center justify-content-between">
+        <button type="submit" class="btn btn-primary px-4">Register</button>
+        <span class="text-muted">Already have an account? <a href="/auth/login">Login</a></span>
+      </div>
+    </form>
+  </div>
+</main>
 <%- include('partials/_footer.ejs') %>

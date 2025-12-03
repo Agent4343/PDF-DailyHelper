@@ -132,7 +132,11 @@ app.get('/healthz', (req, res) => {
   });
 });
 
-app.get('/', isAuthenticated, async (req, res) => {
+app.get('/', async (req, res) => {
+  if (!req.session?.userId) {
+    return res.render('login');
+  }
+
   try {
     const pdfs = await Pdf.find({ user: req.session.userId }).sort({ uploadDate: -1 });
     res.render('index', { pdfs });

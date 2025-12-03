@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { generateChatResponse } = require('../services/ragService');
 const { isAuthenticated } = require('./middleware/authMiddleware');
+const logger = require('../services/logger');
 
 router.get('/chat', isAuthenticated, (req, res) => {
   res.render('chat');
@@ -23,7 +24,7 @@ router.post('/api/chat', isAuthenticated, async (req, res) => {
 
     res.json(response);
   } catch (error) {
-    console.error('Chat error:', error);
+    logger.error({ err: error, userId: req.session.userId }, 'Chat error');
     res.status(500).json({ message: 'Unable to generate response at this time.' });
   }
 });

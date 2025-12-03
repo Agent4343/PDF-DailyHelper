@@ -2,6 +2,7 @@ const express = require('express');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const router = express.Router();
+const logger = require('../services/logger');
 
 router.get('/auth/register', (req, res) => {
   res.render('register');
@@ -20,13 +21,13 @@ router.post('/auth/register', async (req, res) => {
     await user.save();
     res.redirect('/auth/login');
   } catch (error) {
-    console.error('Registration error:', error);
+    logger.error({ err: error, username }, 'Registration error');
     res.status(400).send('Error registering user');
   }
 });
 
 router.get('/auth/login', (req, res) => {
-  console.log('GET /auth/login route accessed');
+  logger.info('GET /auth/login route accessed');
   res.render('login');
 });
 
@@ -52,7 +53,7 @@ router.post('/auth/login', async (req, res) => {
     req.session.userId = user._id;
     return res.redirect('/');
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error({ err: error, username }, 'Login error');
     res.status(400).send('Error during login');
   }
 });
@@ -60,7 +61,7 @@ router.post('/auth/login', async (req, res) => {
 router.get('/auth/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
-      console.error('Error during session destruction:', err);
+      logger.error({ err }, 'Error during session destruction');
       return res.status(500).send('Error logging out');
     }
     res.redirect('/auth/login');

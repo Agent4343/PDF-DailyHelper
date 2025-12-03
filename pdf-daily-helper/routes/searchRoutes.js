@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { searchPdfContent } = require('../services/searchService');
 const { isAuthenticated } = require('./middleware/authMiddleware');
+const logger = require('../services/logger');
 
 router.get('/api/search', isAuthenticated, async (req, res) => {
   try {
@@ -21,7 +22,7 @@ router.get('/api/search', isAuthenticated, async (req, res) => {
     );
     res.json(searchResults);
   } catch (error) {
-    console.error('Search error:', error);
+    logger.error({ err: error, userId: req.session.userId }, 'Search error');
     res.status(500).json({ error: 'An error occurred while searching' });
   }
 });

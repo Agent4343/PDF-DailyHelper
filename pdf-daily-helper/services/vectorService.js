@@ -109,5 +109,6 @@ async function searchSimilarChunks({ userId, query, matchCount = 5, matchThresho
 module.exports = {
   upsertPdfChunks,
   deletePdfChunks,
-  searchSimilarChunks
+  searchSimilarChunks,
+  chunkTextForTest: chunkText
 };

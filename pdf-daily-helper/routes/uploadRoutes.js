@@ -4,6 +4,7 @@ const multer = require('multer');
 const Pdf = require('../models/Pdf');
 const { parsePdf } = require('../services/pdfParseService');
 const { isAuthenticated } = require('./middleware/authMiddleware');
+const logger = require('../services/logger');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -48,7 +49,7 @@ router.post('/upload', isAuthenticated, runUpload, async (req, res) => {
 
     return res.status(200).json({ message: 'File uploaded successfully and parsing initiated.' });
   } catch (error) {
-    console.error('Error in upload route:', error);
+    logger.error({ err: error, userId: req.session.userId }, 'Error in upload route');
     return res.status(500).json({ message: 'Error uploading file.' });
   }
 });

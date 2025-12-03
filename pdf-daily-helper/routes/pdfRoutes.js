@@ -4,6 +4,7 @@ const Pdf = require('../models/Pdf');
 const IndexedData = require('../models/IndexedData');
 const { deletePdfChunks } = require('../services/vectorService');
 const { isAuthenticated } = require('./middleware/authMiddleware');
+const logger = require('../services/logger');
 
 router.get('/pdfs', isAuthenticated, async (req, res) => {
   try {
@@ -12,7 +13,7 @@ router.get('/pdfs', isAuthenticated, async (req, res) => {
       .select('_id originalName uploadDate filename structure');
     res.json(pdfs);
   } catch (error) {
-    console.error('Error fetching PDFs:', error);
+    logger.error({ err: error, userId: req.session.userId }, 'Error fetching PDFs');
     res.status(500).json({ message: 'Error fetching PDFs' });
   }
 });
@@ -30,7 +31,7 @@ router.delete('/pdfs/:id', isAuthenticated, async (req, res) => {
 
     res.json({ message: 'PDF deleted successfully' });
   } catch (error) {
-    console.error('Error deleting PDF:', error);
+    logger.error({ err: error, pdfId: req.params.id }, 'Error deleting PDF');
     res.status(500).json({ message: 'Error deleting PDF' });
   }
 });
@@ -47,7 +48,7 @@ router.get('/pdfs/:id/parsed', isAuthenticated, async (req, res) => {
       structure: pdf.structure || {}
     });
   } catch (error) {
-    console.error('Error fetching parsed PDF data:', error);
+    logger.error({ err: error, pdfId: req.params.id }, 'Error fetching parsed PDF data');
     res.status(500).json({ message: 'Error fetching parsed PDF data' });
   }
 });

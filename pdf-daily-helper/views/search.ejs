@@ -7,7 +7,18 @@
 <main class="container py-4" role="main">
   <section class="page-hero mb-4">
     <div class="d-flex flex-column gap-2 position-relative">
-      <span class="badge-soft align-self-start">Semantic Search</span>
+      <div class="d-flex flex-wrap gap-2">
+        <span class="badge-soft align-self-start">Semantic Search</span>
+        <% if (features && features.ocrEnabled) { %>
+          <span class="badge-soft align-self-start" style="background: rgba(16, 185, 129, 0.18); color: #065f46;">
+            OCR: <%= (features.ocrProvider || 'ENABLED').toUpperCase() %>
+          </span>
+        <% } else { %>
+          <span class="badge-soft align-self-start" style="background: rgba(249, 115, 22, 0.18); color: #c2410c;">
+            OCR disabled
+          </span>
+        <% } %>
+      </div>
       <h1 class="display-6 fw-semibold mb-1">Find exactly what you need inside your PDFs</h1>
       <p class="lead text-white-50 mb-0">Combine full-text, date, and filename filters, then jump straight to the relevant chunks.</p>
     </div>

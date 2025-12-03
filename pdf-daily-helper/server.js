@@ -15,6 +15,7 @@ const chatRoutes = require('./routes/chatRoutes');
 const Pdf = require('./models/Pdf');
 const { isAuthenticated } = require('./routes/middleware/authMiddleware');
 const logger = require('./services/logger');
+const { AVAILABLE_OCR_PROVIDERS } = require('./services/ocrService');
 
 if (!process.env.DATABASE_URL || !process.env.SESSION_SECRET) {
   throw new Error('Missing DATABASE_URL or SESSION_SECRET. Please configure your environment variables.');
@@ -82,8 +83,15 @@ app.use((req, res, next) => {
   next();
 });
 
+const featureFlags = {
+  ocrEnabled: Boolean(process.env.OCR_PROVIDER),
+  ocrProvider: (process.env.OCR_PROVIDER || '').toUpperCase() || null,
+  availableOcrProviders: AVAILABLE_OCR_PROVIDERS
+};
+
 app.use((req, res, next) => {
   res.locals.session = req.session;
+  res.locals.features = featureFlags;
   next();
 });
 

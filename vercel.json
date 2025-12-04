@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "rootDirectory": "pdf-daily-helper",
+  "functions": {
+    "api/index.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.js"
+    }
+  ]
+}

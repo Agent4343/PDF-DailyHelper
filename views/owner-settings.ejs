@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/_head.ejs') %>
+<body>
+<%- include('partials/_header.ejs') %>
+<main class="container py-4" role="main">
+  <section class="page-hero mb-4">
+    <div class="d-flex flex-column gap-2 position-relative">
+      <span class="badge-soft align-self-start">Owner Console</span>
+      <h1 class="h4 fw-semibold mb-0">Secure Configuration</h1>
+      <p class="text-white-50 mb-0">Store private API keys or internal notes. Values are saved in MongoDB for owner-only access.</p>
+    </div>
+  </section>
+
+  <% if (status === 'success') { %>
+    <div class="alert alert-success" role="alert">
+      Setting saved successfully.
+    </div>
+  <% } %>
+
+  <div class="card-elevated mb-4">
+    <form method="POST" action="/owner/settings">
+      <div class="mb-3">
+        <label class="form-label fw-semibold" for="key">Setting Key</label>
+        <input type="text" class="form-control" id="key" name="key" placeholder="e.g. OPENAI_API_KEY" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold" for="value">Value</label>
+        <textarea class="form-control" id="value" name="value" rows="3" placeholder="Paste your secret or configuration" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Setting</button>
+    </form>
+  </div>
+
+  <div class="card-elevated">
+    <div class="card-header">
+      <div>
+        <h2 class="h5 mb-0">Stored Settings</h2>
+        <small class="text-muted">Values are partially masked for safety.</small>
+      </div>
+    </div>
+    <% if (!settings || !settings.length) { %>
+      <p class="text-muted">No settings stored yet.</p>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th scope="col">Key</th>
+              <th scope="col">Value</th>
+              <th scope="col">Last Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% settings.forEach(function(setting) { %>
+              <tr>
+                <td><code><%= setting.key %></code></td>
+                <td>
+                  <% if (setting.value && setting.value.length > 8) { %>
+                    <%= setting.value.slice(0, 4) %>••••<%= setting.value.slice(-4) %>
+                  <% } else { %>
+                    <%= setting.value %>
+                  <% } %>
+                </td>
+                <td><%= setting.updatedAt ? setting.updatedAt.toLocaleString() : '' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</main>
+<%- include('partials/_footer.ejs') %>
+</body>
+</html>

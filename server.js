@@ -23,6 +23,39 @@ if (!process.env.DATABASE_URL || !process.env.SESSION_SECRET) {
   throw new Error('Missing DATABASE_URL or SESSION_SECRET. Please configure your environment variables.');
 }
 
+let cachedDb = null;
+let dbPromise = null;
+
+async function connectToDatabase() {
+  if (cachedDb) {
+    return cachedDb;
+  }
+
+  if (!dbPromise) {
+    dbPromise = mongoose
+      .connect(process.env.DATABASE_URL, {
+        serverSelectionTimeoutMS: 5000
+      })
+      .then((conn) => {
+        cachedDb = conn;
+        logger.info('Database connected successfully');
+        return conn;
+      })
+      .catch((err) => {
+        dbPromise = null;
+        logger.error({ err }, 'Database connection error');
+        throw err;
+      });
+  }
+
+  return dbPromise;
+}
+
+async function ensureInfrastructure() {
+  await connectToDatabase();
+  await ensureOwnerAccount();
+}
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -35,24 +68,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: '6mb' }));
 
 app.use(express.static(path.join(__dirname, 'public')));
-
-let dbConnectionPromise;
-
-async function initializeDatabase() {
-  if (!dbConnectionPromise) {
-    dbConnectionPromise = mongoose.connect(process.env.DATABASE_URL);
-    await dbConnectionPromise;
-    logger.info('Database connected successfully');
-  }
-  return dbConnectionPromise;
-}
-
-initializeDatabase()
-  .then(() => ensureOwnerAccount())
-  .catch((err) => {
-  logger.error({ err }, 'Database connection error');
-  throw err;
-});
 
 const sessionStore = MongoStore.create({
   mongoUrl: process.env.DATABASE_URL,

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 const indexedDataSchema = new mongoose.Schema({
   pdfId: { type: mongoose.Schema.Types.ObjectId, ref: 'Pdf', required: true },
@@ -23,7 +24,7 @@ if (process.env.ALGOLIA_APP_ID && process.env.ALGOLIA_API_KEY) {
     debug: true
   });
 } else {
-  console.log('Algolia integration not configured. Skipping Algolia setup.');
+  logger.info('Algolia integration not configured. Skipping setup.');
 }
 
 const IndexedData = mongoose.model('IndexedData', indexedDataSchema);

@@ -1,51 +1,52 @@
 const express = require('express');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const logger = require('../utils/logger');
 const router = express.Router();
 
 router.get('/auth/register', (req, res) => {
+  logger.info('GET /auth/register accessed', { requestId: req.requestId });
   res.render('register');
 });
 
 router.post('/auth/register', async (req, res) => {
-  console.log("Registration attempt with username:", req.body.username);
+  logger.info("Registration attempt received", { username: req.body.username, requestId: req.requestId });
   try {
     const user = new User({ username: req.body.username, password: req.body.password });
     await user.save();
-    console.log("User registered successfully:", user.username);
+    logger.info("User registered successfully", { username: user.username, requestId: req.requestId });
     res.redirect('/auth/login');
   } catch (error) {
-    console.error("Registration error:", error);
+    logger.error("Registration error", { error, requestId: req.requestId });
     res.status(400).send("Error registering user");
   }
 });
 
 router.get('/auth/login', (req, res) => {
-  console.log('GET /auth/login route accessed');
+  logger.info('GET /auth/login accessed', { requestId: req.requestId });
   res.render('login');
 });
 
 router.post('/auth/login', async (req, res) => {
-  console.log('POST /auth/login route accessed');
-  console.log('Request body:', req.body);
+  logger.info('Login attempt received', { username: req.body.username, requestId: req.requestId });
   try {
     const user = await User.findOne({ username: req.body.username });
     if (user) {
       const result = await bcrypt.compare(req.body.password, user.password);
       if (result) {
         req.session.userId = user._id;
-        console.log("User logged in successfully:", user.username);
+        logger.info("User logged in successfully", { username: user.username, requestId: req.requestId });
         return res.redirect("/");
       } else {
-        console.log("Login failed: Incorrect password for user:", user.username);
+        logger.warn("Login failed due to incorrect password", { username: user.username, requestId: req.requestId });
         res.status(400).send("Invalid username or password");
       }
     } else {
-      console.log("Login failed: User not found:", req.body.username);
+      logger.warn("Login failed: user not found", { username: req.body.username, requestId: req.requestId });
       res.status(400).send("Invalid username or password");
     }
   } catch (error) {
-    console.error("Login error:", error);
+    logger.error("Login error", { error, requestId: req.requestId });
     res.status(400).send("Error during login");
   }
 });
@@ -53,7 +54,7 @@ router.post('/auth/login', async (req, res) => {
 router.get('/auth/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
-      console.error('Error during session destruction:', err);
+      logger.error('Error during session destruction', { error: err, requestId: req.requestId });
       return res.status(500).send('Error logging out');
     }
     res.redirect('/auth/login');

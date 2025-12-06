@@ -1,6 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const form = document.querySelector('form');
+  const form = document.getElementById('uploadForm');
+  if (!form || form.dataset.uploadBound === 'true') {
+    return;
+  }
+  form.dataset.uploadBound = 'true';
   const submitButton = form.querySelector('button[type="submit"]');
+  const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : null;
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -11,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     fetch('/api/upload', {
       method: 'POST',
+      headers: csrfToken ? { 'CSRF-Token': csrfToken } : {},
       body: formData
     })
     .then(response => response.text())

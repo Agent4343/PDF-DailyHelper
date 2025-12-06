@@ -1,3 +1,18 @@
+function escapeHtml(value = '') {
+  return value
+    ? value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+    : '';
+}
+
+function escapeRegex(value = '') {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const searchForm = document.getElementById('searchForm');
   const searchResults = document.getElementById('searchResults');
@@ -53,12 +68,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     let resultsHtml = '<h2>Search Results</h2><ul class="list-group">';
+    const queryValue = document.getElementById('searchQuery').value;
     data.results.forEach(result => {
+      const safeFileName = escapeHtml(result.pdfId?.originalName || 'Unnamed PDF');
+      const snippetSource = result.content ? result.content.substring(0, 200) : '';
+      const safeSnippet = escapeHtml(snippetSource);
       resultsHtml += `
         <li class="list-group-item">
-          <h5>${result.pdfId.originalName}</h5>
-          <p>${highlightSearchTerms(result.content.substring(0, 200), document.getElementById('searchQuery').value)}...</p>
-          <small>Page: ${result.pageNumber} | Uploaded: ${new Date(result.createdAt).toLocaleDateString()}</small>
+          <h5>${safeFileName}</h5>
+          <p>${highlightSearchTerms(safeSnippet, queryValue)}${snippetSource.length >= 200 ? '...' : ''}</p>
+          <small>Page: ${escapeHtml(String(result.pageNumber || 'N/A'))} | Uploaded: ${escapeHtml(new Date(result.createdAt).toLocaleDateString())}</small>
         </li>
       `;
     });
@@ -95,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let highlightedText = text;
 
     words.forEach(word => {
-      const regex = new RegExp(word, 'gi');
+      const regex = new RegExp(escapeRegex(word), 'gi');
       highlightedText = highlightedText.replace(regex, match => `<mark>${match}</mark>`);
     });
 

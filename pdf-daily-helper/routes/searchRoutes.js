@@ -2,9 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { searchPdfContent } = require('../services/searchService');
 const { ensureAuthenticated } = require('../middleware/authMiddleware');
+const logger = require('../utils/logger');
 
 router.get('/api/search', ensureAuthenticated, async (req, res) => {
-  console.log('GET /api/search route accessed with query:', req.query);
+  logger.info('GET /api/search requested', {
+    requestId: req.requestId,
+    userId: req.session.userId,
+    query: req.query.query,
+  });
   try {
     const dateFilter = req.query.dateFilter;
     const fileNameFilter = req.query.fileNameFilter;
@@ -24,13 +29,13 @@ router.get('/api/search', ensureAuthenticated, async (req, res) => {
     const searchResults = await searchPdfContent(query, page, limit, filters, req.session.userId);
     res.json(searchResults);
   } catch (error) {
-    console.error('Search error:', error);
-    console.error(error.stack);
+    logger.error('Search endpoint error', { error, requestId: req.requestId });
     res.status(500).json({ error: 'An error occurred while searching' });
   }
 });
 
-router.get('/search', (req, res) => {
+router.get('/search', ensureAuthenticated, (req, res) => {
+  logger.info('GET /search accessed', { requestId: req.requestId, userId: req.session.userId });
   res.render('search');
 });
 

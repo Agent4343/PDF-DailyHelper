@@ -1,3 +1,14 @@
+function escapeHtml(value = '') {
+  return value
+    ? value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+    : '';
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const parsedDataLinks = document.querySelectorAll('a[href^="/api/pdfs/"][href$="/parsed"]');
 
@@ -64,9 +75,9 @@ document.addEventListener('DOMContentLoaded', function() {
     content.innerHTML = `
       <h2>Parsed PDF Data</h2>
       <h3>Extracted Text:</h3>
-      <pre>${data.extractedText}</pre>
+      <pre>${escapeHtml(data.extractedText || '')}</pre>
       <h3>Structure:</h3>
-      <pre>${JSON.stringify(data.structure, null, 2)}</pre>
+      <pre>${escapeHtml(JSON.stringify(data.structure, null, 2) || '')}</pre>
     `;
 
     modalContent.appendChild(closeBtn);

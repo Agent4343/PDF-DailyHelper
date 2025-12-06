@@ -2,26 +2,35 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 const express = require("express");
+const cookieParser = require('cookie-parser');
 const session = require("express-session");
 const MongoStore = require('connect-mongo');
+const csrf = require('csurf');
 const authRoutes = require("./routes/authRoutes");
 const uploadRoutes = require('./routes/uploadRoutes');
 const pdfRoutes = require('./routes/pdfRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const Pdf = require('./models/Pdf');
 require('./models/IndexedData');
+const { ensureAuthenticated } = require('./middleware/authMiddleware');
+const requestLogger = require('./middleware/requestLogger');
+const logger = require('./utils/logger');
 
-console.log('Server starting...');
-console.log('Node version:', process.version);
-console.log('Current working directory:', process.cwd());
+logger.info('Server starting', {
+  nodeVersion: process.version,
+  workingDirectory: process.cwd(),
+});
 
 if (!process.env.DATABASE_URL || !process.env.SESSION_SECRET) {
-  console.error("Error: config environment variables not set. Please create/edit .env configuration file.");
+  logger.error('Required environment variables are missing. Please set DATABASE_URL and SESSION_SECRET.');
   process.exit(-1);
 }
 
 const app = express();
 const port = process.env.PORT || 3000;
+const csrfProtection = csrf();
+
+app.use(cookieParser());
 
 // Middleware to parse request bodies
 app.use(express.urlencoded({ extended: true }));
@@ -33,18 +42,18 @@ app.set("view engine", "ejs");
 // Serve static files
 app.use(express.static("public"));
 
-console.log('Attempting to connect to database...');
-console.log('Database URL configured:', Boolean(process.env.DATABASE_URL));
+logger.info('Attempting to connect to database', {
+  databaseUrlConfigured: Boolean(process.env.DATABASE_URL),
+});
 
 // Database connection
 mongoose
   .connect(process.env.DATABASE_URL)
   .then(() => {
-    console.log("Database connected successfully");
+    logger.info("Database connected successfully");
   })
   .catch((err) => {
-    console.error(`Database connection error: ${err.message}`);
-    console.error(err.stack);
+    logger.error('Database connection error', { error: err });
     process.exit(1);
   });
 
@@ -58,9 +67,11 @@ app.use(
   }),
 );
 
+app.use(requestLogger);
+app.use(csrfProtection);
+
 app.on("error", (error) => {
-  console.error(`Server error: ${error.message}`);
-  console.error(error.stack);
+  logger.error('Server error event emitted', { error });
 });
 
 // Logging session creation and destruction
@@ -68,21 +79,29 @@ app.use((req, res, next) => {
   const sess = req.session;
   // Make session available to all views
   res.locals.session = sess;
+  if (typeof req.csrfToken === 'function') {
+    try {
+      res.locals.csrfToken = req.csrfToken();
+    } catch (err) {
+      return next(err);
+    }
+  }
   if (!sess.views) {
     sess.views = 1;
-    console.log("Session created at: ", new Date().toISOString());
+    logger.info('Session created', {
+      requestId: req.requestId,
+      createdAt: new Date().toISOString(),
+      userId: sess.userId,
+    });
   } else {
     sess.views++;
-    console.log(
-      `Session accessed again at: ${new Date().toISOString()}, Views: ${sess.views}, User ID: ${sess.userId || '(unauthenticated)'}`,
-    );
+    logger.info('Session accessed', {
+      requestId: req.requestId,
+      timestamp: new Date().toISOString(),
+      views: sess.views,
+      userId: sess.userId,
+    });
   }
-  next();
-});
-
-// Log for all incoming requests
-app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.url}`);
   next();
 });
 
@@ -99,12 +118,16 @@ app.use('/api', pdfRoutes);
 app.use('/', searchRoutes);
 
 // Root path response
-app.get("/", async (req, res) => {
+app.get("/", ensureAuthenticated, async (req, res) => {
   try {
-    const pdfs = await Pdf.find().sort({ uploadDate: -1 });
+    const pdfs = await Pdf.find({ user: req.session.userId }).sort({ uploadDate: -1 });
     res.render("index", { pdfs: pdfs });
   } catch (error) {
-    console.error('Error fetching PDFs:', error);
+    logger.error('Error fetching PDFs for dashboard', {
+      error,
+      requestId: req.requestId,
+      userId: req.session.userId,
+    });
     res.status(500).send("Error fetching PDFs");
   }
 });
@@ -116,21 +139,35 @@ app.use((req, res, next) => {
 
 // Error handling
 app.use((err, req, res, next) => {
-  console.error(`Unhandled application error: ${err.message}`);
-  console.error(err.stack);
+  if (err.code === 'EBADCSRFTOKEN') {
+    logger.warn('Invalid CSRF token detected', {
+      method: req.method,
+      path: req.originalUrl,
+      requestId: req.requestId,
+      userId: req.session?.userId,
+    });
+    if (req.originalUrl.startsWith('/api') || req.headers.accept?.includes('application/json')) {
+      return res.status(403).json({ error: 'Invalid CSRF token' });
+    }
+    return res.status(403).send('Invalid CSRF token');
+  }
+  logger.error('Unhandled application error', {
+    error: err,
+    requestId: req.requestId,
+  });
   res.status(500).send("There was an error serving your request.");
 });
 
-console.log('Setting up server to listen on port:', port);
+logger.info('Setting up server listener', { port });
 
 const server = app.listen(port, () => {
-  console.log(`Server started on port ${port}`);
+  logger.info('Server started', { port });
 }).on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`Port ${port} is already in use. Please choose a different port or stop the other process.`);
+    logger.error('Port already in use', { port });
     process.exit(1);
   } else {
-    console.error('An error occurred while starting the server:', err);
+    logger.error('An error occurred while starting the server', { error: err });
     process.exit(1);
   }
 });

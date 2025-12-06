@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const logger = require('../utils/logger');
 
 const userSchema = new mongoose.Schema({
   username: { type: String, unique: true, required: true },
@@ -7,16 +8,15 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.pre('save', async function (next) {
-  console.log("Hashing password for user:", this.username);
+  logger.info("Hashing password for user", { username: this.username });
   if (!this.isModified('password')) return next();
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    console.log("Password hashed successfully for user:", this.username);
+    logger.info("Password hashed successfully for user", { username: this.username });
     next();
   } catch (error) {
-    console.error("Error hashing password:", error);
-    console.error(error.stack);
+    logger.error("Error hashing password", { error, username: this.username });
     next(error);
   }
 });

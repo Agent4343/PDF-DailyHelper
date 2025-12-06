@@ -1,5 +1,6 @@
 const IndexedData = require('../models/IndexedData');
 const Pdf = require('../models/Pdf');
+const logger = require('../utils/logger');
 
 function normalizePositiveInteger(value, defaultValue, { min = 1, max } = {}) {
   const parsed = parseInt(value, 10);
@@ -21,7 +22,13 @@ function extractDaysFromFilter(filterValue) {
 }
 
 async function searchPdfContent(query, page = 1, limit = 10, filters = {}, userId) {
-  console.log(`Searching PDF content with query: "${query}", page: ${page}, limit: ${limit}, filters:`, filters);
+  logger.info('Searching PDF content', {
+    query,
+    page,
+    limit,
+    filters,
+    userId,
+  });
   if (!userId) {
     throw new Error('User context is required to search PDF content.');
   }
@@ -80,7 +87,12 @@ async function searchPdfContent(query, page = 1, limit = 10, filters = {}, userI
       IndexedData.countDocuments(searchQuery)
     ]);
 
-    console.log(`Found ${total} results for query: "${sanitizedQuery}"`);
+    logger.info('Search completed', {
+      query: sanitizedQuery,
+      total,
+      page: normalizedPage,
+      userId,
+    });
 
     return {
       results,
@@ -89,8 +101,7 @@ async function searchPdfContent(query, page = 1, limit = 10, filters = {}, userI
       totalPages: total ? Math.ceil(total / normalizedLimit) : 0
     };
   } catch (error) {
-    console.error('Error searching PDF content:', error);
-    console.error(error.stack);
+    logger.error('Error searching PDF content', { error, userId, query: sanitizedQuery });
     throw error;
   }
 }

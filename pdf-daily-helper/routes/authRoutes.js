@@ -26,8 +26,7 @@ router.get('/auth/login', (req, res) => {
 });
 
 router.post('/auth/login', async (req, res) => {
-  console.log('POST /auth/login route accessed');
-  console.log('Request body:', req.body);
+  console.log('POST /auth/login route accessed for username:', req.body.username);
   try {
     const user = await User.findOne({ username: req.body.username });
     if (user) {

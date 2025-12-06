@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const Pdf = require('../models/Pdf');
 const { parsePdf } = require('../services/pdfParseService');
+const { ensureAuthenticated } = require('../middleware/authMiddleware');
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
@@ -26,7 +27,7 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB file size limit
 });
 
-router.post('/upload', upload.single('pdfFile'), async (req, res) => {
+router.post('/upload', ensureAuthenticated, upload.single('pdfFile'), async (req, res) => {
   console.log('Upload route accessed');
   if (!req.file) {
     console.log('No file uploaded');

@@ -27,14 +27,6 @@ const port = process.env.PORT || 3000;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Middleware to log POST request bodies
-app.use((req, res, next) => {
-  if (req.method === 'POST') {
-    console.log('POST request body:', req.body);
-  }
-  next();
-});
-
 // Setting the templating engine to EJS
 app.set("view engine", "ejs");
 
@@ -42,7 +34,7 @@ app.set("view engine", "ejs");
 app.use(express.static("public"));
 
 console.log('Attempting to connect to database...');
-console.log('DATABASE_URL:', process.env.DATABASE_URL);
+console.log('Database URL configured:', Boolean(process.env.DATABASE_URL));
 
 // Database connection
 mongoose

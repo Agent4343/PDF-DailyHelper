@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Pdf = require('../models/Pdf');
 const fs = require('fs');
+const { ensureAuthenticated } = require('../middleware/authMiddleware');
 
-router.get('/pdfs', async (req, res) => {
+router.get('/pdfs', ensureAuthenticated, async (req, res) => {
   console.log('GET /pdfs route accessed');
   try {
-    const pdfs = await Pdf.find().sort({ uploadDate: -1 });
+    const pdfs = await Pdf.find({ user: req.session.userId }).sort({ uploadDate: -1 });
     console.log('PDFs fetched successfully');
     res.json(pdfs);
   } catch (error) {
@@ -16,13 +17,17 @@ router.get('/pdfs', async (req, res) => {
   }
 });
 
-router.delete('/pdfs/:id', async (req, res) => {
+router.delete('/pdfs/:id', ensureAuthenticated, async (req, res) => {
   console.log(`DELETE /pdfs/${req.params.id} route accessed`);
   try {
     const pdf = await Pdf.findById(req.params.id);
     if (!pdf) {
       console.log('PDF not found for deletion');
       return res.status(404).json({ message: 'PDF not found' });
+    }
+    if (!pdf.user || pdf.user.toString() !== req.session.userId) {
+      console.log(`User ${req.session.userId} attempted to delete PDF they do not own`);
+      return res.status(403).json({ message: 'You are not authorized to delete this PDF' });
     }
 
     // Delete the file from the filesystem
@@ -46,13 +51,17 @@ router.delete('/pdfs/:id', async (req, res) => {
   }
 });
 
-router.get('/pdfs/:id/parsed', async (req, res) => {
+router.get('/pdfs/:id/parsed', ensureAuthenticated, async (req, res) => {
   console.log(`GET /pdfs/${req.params.id}/parsed route accessed`);
   try {
     const pdf = await Pdf.findById(req.params.id);
     if (!pdf) {
       console.log(`PDF with ID ${req.params.id} not found`);
       return res.status(404).send('PDF not found');
+    }
+    if (!pdf.user || pdf.user.toString() !== req.session.userId) {
+      console.log(`User ${req.session.userId} attempted to access parsed data they do not own`);
+      return res.status(403).send('You are not authorized to view this PDF');
     }
     console.log('Parsed PDF data fetched successfully');
     res.json({

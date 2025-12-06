@@ -1,43 +1,92 @@
 const IndexedData = require('../models/IndexedData');
+const Pdf = require('../models/Pdf');
 
-async function searchPdfContent(query, page = 1, limit = 10, filters = {}) {
+function normalizePositiveInteger(value, defaultValue, { min = 1, max } = {}) {
+  const parsed = parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed < min) {
+    return defaultValue;
+  }
+  if (max && parsed > max) {
+    return max;
+  }
+  return parsed;
+}
+
+function extractDaysFromFilter(filterValue) {
+  if (!filterValue) {
+    return null;
+  }
+  const days = parseInt(String(filterValue).replace(/\D/g, ''), 10);
+  return Number.isNaN(days) || days <= 0 ? null : days;
+}
+
+async function searchPdfContent(query, page = 1, limit = 10, filters = {}, userId) {
   console.log(`Searching PDF content with query: "${query}", page: ${page}, limit: ${limit}, filters:`, filters);
+  if (!userId) {
+    throw new Error('User context is required to search PDF content.');
+  }
+
+  const sanitizedQuery = (query || '').trim();
+  if (!sanitizedQuery) {
+    throw new Error('Search query is required.');
+  }
+
   try {
-    const skip = (page - 1) * limit;
-    let searchQuery = { $text: { $search: query } };
-
-    // Apply date filter
-    if (filters.dateFilter) {
-      const date = new Date();
-      date.setDate(date.getDate() - parseInt(filters.dateFilter.replace('d', '')));
-      searchQuery.createdAt = { $gte: date };
-    }
-
-    // Apply file name filter
-    if (filters.fileNameFilter) {
-      searchQuery['pdfId.originalName'] = new RegExp(filters.fileNameFilter, 'i');
-    }
+    const normalizedPage = normalizePositiveInteger(page, 1);
+    const normalizedLimit = normalizePositiveInteger(limit, 10, { min: 1, max: 100 });
+    const skip = (normalizedPage - 1) * normalizedLimit;
+    const searchQuery = { $text: { $search: sanitizedQuery } };
 
     // Apply page number filter
     if (filters.pageNumberFilter) {
-      searchQuery.pageNumber = parseInt(filters.pageNumberFilter);
+      const pageNumber = normalizePositiveInteger(filters.pageNumberFilter, null);
+      if (pageNumber) {
+        searchQuery.pageNumber = pageNumber;
+      }
     }
 
-    const results = await IndexedData.find(searchQuery, { score: { $meta: "textScore" } })
-      .sort({ score: { $meta: "textScore" } })
-      .skip(skip)
-      .limit(limit)
-      .populate('pdfId', 'filename originalName');
+    // Build PDF ownership/filter constraints
+    const pdfCriteria = { user: userId };
 
-    const total = await IndexedData.countDocuments(searchQuery);
+    const dateFilterDays = extractDaysFromFilter(filters.dateFilter);
+    if (dateFilterDays) {
+      const date = new Date();
+      date.setDate(date.getDate() - dateFilterDays);
+      pdfCriteria.uploadDate = { $gte: date };
+    }
 
-    console.log(`Found ${total} results for query: "${query}"`);
+    if (filters.fileNameFilter) {
+      pdfCriteria.originalName = new RegExp(filters.fileNameFilter, 'i');
+    }
+
+    const allowedPdfIds = await Pdf.find(pdfCriteria).distinct('_id');
+    if (!allowedPdfIds.length) {
+      return {
+        results: [],
+        total: 0,
+        page: normalizedPage,
+        totalPages: 0
+      };
+    }
+
+    searchQuery.pdfId = { $in: allowedPdfIds };
+
+    const [results, total] = await Promise.all([
+      IndexedData.find(searchQuery, { score: { $meta: 'textScore' } })
+        .sort({ score: { $meta: 'textScore' } })
+        .skip(skip)
+        .limit(normalizedLimit)
+        .populate('pdfId', 'filename originalName'),
+      IndexedData.countDocuments(searchQuery)
+    ]);
+
+    console.log(`Found ${total} results for query: "${sanitizedQuery}"`);
 
     return {
       results,
       total,
-      page,
-      totalPages: Math.ceil(total / limit)
+      page: normalizedPage,
+      totalPages: total ? Math.ceil(total / normalizedLimit) : 0
     };
   } catch (error) {
     console.error('Error searching PDF content:', error);

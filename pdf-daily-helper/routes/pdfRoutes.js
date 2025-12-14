@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Pdf = require('../models/Pdf');
+const IndexedData = require('../models/IndexedData');
 const fs = require('fs');
+
+// Check if Vercel Blob is available
+const isVercelBlobEnabled = !!process.env.BLOB_READ_WRITE_TOKEN;
 
 router.get('/pdfs', async (req, res) => {
   console.log('GET /pdfs route accessed');
@@ -25,20 +29,36 @@ router.delete('/pdfs/:id', async (req, res) => {
       return res.status(404).json({ message: 'PDF not found' });
     }
 
-    // Delete the file from the filesystem
-    fs.unlink(pdf.path, async (err) => {
-      if (err) {
-        console.error('Error deleting file:', err);
-        console.error(err.stack);
-        return res.status(500).json({ message: 'Error deleting file', error: err.message });
+    // Delete the file from storage
+    if (pdf.blobUrl && isVercelBlobEnabled) {
+      // Delete from Vercel Blob
+      try {
+        const { del } = require('@vercel/blob');
+        await del(pdf.blobUrl);
+        console.log(`Blob ${pdf.blobUrl} deleted successfully`);
+      } catch (blobErr) {
+        console.error('Error deleting from Vercel Blob:', blobErr);
+        // Continue with database deletion even if blob deletion fails
       }
+    } else if (pdf.path) {
+      // Delete from local filesystem
+      try {
+        fs.unlinkSync(pdf.path);
+        console.log(`File ${pdf.path} deleted successfully`);
+      } catch (fsErr) {
+        console.error('Error deleting local file:', fsErr);
+        // Continue with database deletion even if file deletion fails
+      }
+    }
 
-      console.log(`File ${pdf.path} deleted successfully`);
-      // Delete the document from the database
-      await Pdf.findByIdAndDelete(req.params.id);
-      console.log(`PDF with id ${req.params.id} deleted successfully from database`);
-      res.json({ message: 'PDF deleted successfully' });
-    });
+    // Delete indexed data for this PDF
+    await IndexedData.deleteMany({ pdfId: req.params.id });
+    console.log(`Indexed data for PDF ${req.params.id} deleted`);
+
+    // Delete the document from the database
+    await Pdf.findByIdAndDelete(req.params.id);
+    console.log(`PDF with id ${req.params.id} deleted successfully from database`);
+    res.json({ message: 'PDF deleted successfully' });
   } catch (error) {
     console.error('Error deleting PDF:', error);
     console.error(error.stack);

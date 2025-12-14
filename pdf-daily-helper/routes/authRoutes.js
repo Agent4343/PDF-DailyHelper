@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const { generateToken } = require('../lib/auth');
 const router = express.Router();
 
 router.get('/auth/register', (req, res) => {
@@ -10,6 +11,11 @@ router.get('/auth/register', (req, res) => {
 router.post('/auth/register', async (req, res) => {
   console.log("Registration attempt with username:", req.body.username);
   try {
+    const existingUser = await User.findOne({ username: req.body.username });
+    if (existingUser) {
+      return res.status(400).send("Username already exists");
+    }
+
     const user = new User({ username: req.body.username, password: req.body.password });
     await user.save();
     console.log("User registered successfully:", user.username);
@@ -33,8 +39,17 @@ router.post('/auth/login', async (req, res) => {
     if (user) {
       const result = await bcrypt.compare(req.body.password, user.password);
       if (result) {
-        req.session.userId = user._id;
+        const token = generateToken(user._id);
         console.log("User logged in successfully:", user.username);
+
+        // Set JWT token in cookie
+        res.cookie('token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
         return res.redirect("/");
       } else {
         console.log("Login failed: Incorrect password for user:", user.username);
@@ -51,13 +66,18 @@ router.post('/auth/login', async (req, res) => {
 });
 
 router.get('/auth/logout', (req, res) => {
-  req.session.destroy(err => {
-    if (err) {
-      console.error('Error during session destruction:', err);
-      return res.status(500).send('Error logging out');
-    }
-    res.redirect('/auth/login');
-  });
+  res.clearCookie('token');
+  console.log('User logged out');
+  res.redirect('/auth/login');
+});
+
+// API endpoint for getting current user info
+router.get('/api/auth/me', (req, res) => {
+  if (req.userId) {
+    res.json({ authenticated: true, userId: req.userId });
+  } else {
+    res.json({ authenticated: false });
+  }
 });
 
 module.exports = router;

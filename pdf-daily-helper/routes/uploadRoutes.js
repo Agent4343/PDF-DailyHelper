@@ -4,15 +4,20 @@ const multer = require('multer');
 const Pdf = require('../models/Pdf');
 const { parsePdf } = require('../services/pdfParseService');
 
-// Configure multer for file upload
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
+// Check if Vercel Blob is available
+const isVercelBlobEnabled = !!process.env.BLOB_READ_WRITE_TOKEN;
+
+// Configure multer - use memory storage for Vercel Blob, disk storage for local
+const storage = isVercelBlobEnabled
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: function (req, file, cb) {
+        cb(null, 'uploads');
+      },
+      filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname);
+      }
+    });
 
 const upload = multer({
   storage: storage,
@@ -35,13 +40,28 @@ router.post('/upload', upload.single('pdfFile'), async (req, res) => {
 
   try {
     console.log('Saving PDF to database');
-    const newPdf = new Pdf({
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      path: req.file.path,
-      user: req.session.userId
-    });
 
+    let pdfData = {
+      filename: Date.now() + '-' + req.file.originalname,
+      originalName: req.file.originalname,
+      user: req.userId // Use JWT user ID
+    };
+
+    // Upload to Vercel Blob if available, otherwise use local storage
+    if (isVercelBlobEnabled) {
+      const { put } = require('@vercel/blob');
+      const blob = await put(pdfData.filename, req.file.buffer, {
+        access: 'public',
+        contentType: 'application/pdf'
+      });
+      pdfData.blobUrl = blob.url;
+      console.log('File uploaded to Vercel Blob:', blob.url);
+    } else {
+      pdfData.path = req.file.path;
+      pdfData.filename = req.file.filename;
+    }
+
+    const newPdf = new Pdf(pdfData);
     await newPdf.save();
     console.log('PDF saved to database:', newPdf);
 

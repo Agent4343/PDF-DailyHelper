@@ -3,6 +3,27 @@ const pdf = require('pdf-parse');
 const Pdf = require('../models/Pdf');
 const IndexedData = require('../models/IndexedData');
 
+async function fetchPdfBuffer(pdfDoc) {
+  // If there's a blob URL (Vercel Blob), fetch from it
+  if (pdfDoc.blobUrl) {
+    console.log(`Fetching PDF from Vercel Blob: ${pdfDoc.blobUrl}`);
+    const response = await fetch(pdfDoc.blobUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch PDF from Blob: ${response.statusText}`);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  }
+
+  // Otherwise, read from local filesystem
+  if (pdfDoc.path) {
+    console.log(`Reading file from local path: ${pdfDoc.path}`);
+    return fs.readFileSync(pdfDoc.path);
+  }
+
+  throw new Error('No valid file location found for PDF');
+}
+
 async function parsePdf(pdfId) {
   console.log(`Parsing PDF with ID: ${pdfId}`);
   try {
@@ -12,8 +33,7 @@ async function parsePdf(pdfId) {
       throw new Error('PDF not found');
     }
 
-    console.log(`Reading file: ${pdfDoc.path}`);
-    const dataBuffer = fs.readFileSync(pdfDoc.path);
+    const dataBuffer = await fetchPdfBuffer(pdfDoc);
     console.log('File read successfully, parsing PDF');
     const data = await pdf(dataBuffer);
 

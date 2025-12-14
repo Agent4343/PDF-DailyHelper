@@ -98,6 +98,11 @@ app.use('/', chatRoutes);
 // Gap Analysis Routes
 app.use('/', gapAnalysisRoutes);
 
+// PDF Viewer page
+app.get("/viewer/:id", (req, res) => {
+  res.render("viewer", { pdfId: req.params.id });
+});
+
 // Root path response
 app.get("/", async (req, res) => {
   try {

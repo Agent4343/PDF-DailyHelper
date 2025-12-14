@@ -1,37 +1,4 @@
 document.addEventListener('DOMContentLoaded', async function () {
-  const form = document.querySelector('form');
-  const submitButton = form.querySelector('button[type="submit"]');
-
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const formData = new FormData(form);
-    submitButton.disabled = true;
-    submitButton.textContent = 'Uploading...';
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload the file.');
-      }
-
-      const result = await response.text();
-      alert(result);
-      form.reset();
-    } catch (error) {
-      console.error('Error:', error);
-      alert('An error occurred while uploading the file.');
-    } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = 'Upload';
-      fetchPDFs();  // Single fetchPDFs call.
-    }
-  });
-
   await fetchPDFs();
 });
 
@@ -44,21 +11,39 @@ async function fetchPDFs() {
 
     const pdfs = await response.json();
     const pdfList = document.getElementById('pdfList');
+    const pdfCount = document.getElementById('pdfCount');
+
     if (!pdfList) {
       console.error('PDF list element not found');
       return;
     }
 
+    // Update count
+    if (pdfCount) {
+      pdfCount.textContent = `${pdfs.length} document${pdfs.length !== 1 ? 's' : ''}`;
+    }
+
     pdfList.innerHTML = pdfs.length === 0
-      ? '<li class="list-group-item">No PDFs uploaded yet.</li>'
+      ? '<li class="list-group-item text-muted">No PDFs uploaded yet. Upload your first document above.</li>'
       : pdfs.map(pdf => `
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            ${pdf.originalName} (Uploaded on: ${new Date(pdf.uploadDate).toLocaleString()})
-            <button class="btn btn-danger btn-sm delete-pdf" data-id="${pdf._id}">Delete</button>
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <strong>${pdf.originalName}</strong>
+                <small class="text-muted d-block">${new Date(pdf.uploadDate).toLocaleString()}${pdf.structure?.numPages ? ` • ${pdf.structure.numPages} pages` : ''}</small>
+              </div>
+              <div class="btn-group btn-group-sm">
+                <a href="/viewer/${pdf._id}" class="btn btn-outline-primary" title="View PDF">View</a>
+                <a href="/api/pdfs/${pdf._id}/download" class="btn btn-outline-secondary" title="Download PDF">Download</a>
+                <button class="btn btn-outline-info summary-pdf" data-id="${pdf._id}" title="AI Summary">Summary</button>
+                <button class="btn btn-outline-danger delete-pdf" data-id="${pdf._id}" title="Delete PDF">Delete</button>
+              </div>
+            </div>
           </li>
         `).join('');
 
     addDeleteListeners();
+    addSummaryListeners();
   } catch (error) {
     console.error('Error fetching PDFs:', error);
     const pdfList = document.getElementById('pdfList');
@@ -96,4 +81,68 @@ async function deletePDF(pdfId) {
     console.error('Error:', error);
     alert('An error occurred while deleting the PDF.');
   }
+}
+
+function addSummaryListeners() {
+  document.querySelectorAll('.summary-pdf').forEach(button => {
+    button.addEventListener('click', async () => {
+      const pdfId = button.getAttribute('data-id');
+      button.disabled = true;
+      button.textContent = 'Loading...';
+
+      try {
+        const response = await fetch(`/api/pdfs/${pdfId}/summary`, {
+          method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showSummaryModal(data.name, data.summary);
+        } else {
+          alert(data.error || 'Failed to generate summary');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while generating summary.');
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Summary';
+      }
+    });
+  });
+}
+
+function showSummaryModal(name, summary) {
+  // Remove existing modal if any
+  const existingModal = document.getElementById('summaryModal');
+  if (existingModal) existingModal.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'summaryModal';
+  modal.className = 'modal fade show';
+  modal.style.display = 'block';
+  modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+  modal.innerHTML = `
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Summary: ${name}</h5>
+          <button type="button" class="btn-close" onclick="closeSummaryModal()"></button>
+        </div>
+        <div class="modal-body">
+          <div style="white-space: pre-wrap; line-height: 1.7;">${summary}</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeSummaryModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function closeSummaryModal() {
+  const modal = document.getElementById('summaryModal');
+  if (modal) modal.remove();
 }

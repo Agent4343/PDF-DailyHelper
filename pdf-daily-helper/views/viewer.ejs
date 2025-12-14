@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/_head.ejs') %>
+<style>
+  .viewer-container {
+    height: calc(100vh - 200px);
+    min-height: 500px;
+  }
+  .pdf-embed {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+  }
+  .pdf-info {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  .pdf-info h4 {
+    margin-bottom: 0.5rem;
+  }
+  .pdf-meta {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+</style>
+<body>
+<%- include('partials/_header.ejs') %>
+
+<main class="container mt-4" role="main">
+  <div class="pdf-info">
+    <div class="d-flex justify-content-between align-items-start flex-wrap">
+      <div>
+        <h4 id="pdfName">Loading...</h4>
+        <div class="pdf-meta">
+          <span id="pdfPages"></span>
+          <span id="pdfDate"></span>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <a id="downloadBtn" href="#" class="btn btn-primary">
+          Download
+        </a>
+        <a href="/" class="btn btn-outline-secondary">
+          Back to List
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="viewer-container">
+    <iframe id="pdfViewer" class="pdf-embed" src="about:blank"></iframe>
+  </div>
+</main>
+
+<%- include('partials/_footer.ejs') %>
+
+<script>
+  const pdfId = '<%= pdfId %>';
+
+  async function loadPdf() {
+    try {
+      // Get PDF info
+      const response = await fetch(`/api/pdfs/${pdfId}`);
+      if (!response.ok) throw new Error('PDF not found');
+
+      const pdf = await response.json();
+
+      // Update UI
+      document.getElementById('pdfName').textContent = pdf.originalName || pdf.filename;
+      document.getElementById('pdfPages').textContent =
+        pdf.structure?.numPages ? `${pdf.structure.numPages} pages • ` : '';
+      document.getElementById('pdfDate').textContent =
+        `Uploaded ${new Date(pdf.uploadDate).toLocaleDateString()}`;
+
+      // Set download link
+      document.getElementById('downloadBtn').href = `/api/pdfs/${pdfId}/download`;
+
+      // Load PDF in viewer
+      document.getElementById('pdfViewer').src = `/api/pdfs/${pdfId}/view`;
+
+    } catch (error) {
+      console.error('Error loading PDF:', error);
+      document.getElementById('pdfName').textContent = 'Error loading PDF';
+    }
+  }
+
+  loadPdf();
+</script>
+</body>
+</html>

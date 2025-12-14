@@ -86,4 +86,98 @@ router.get('/pdfs/:id/parsed', async (req, res) => {
   }
 });
 
+// Download PDF file
+router.get('/pdfs/:id/download', async (req, res) => {
+  console.log(`GET /pdfs/${req.params.id}/download route accessed`);
+  try {
+    const pdf = await Pdf.findById(req.params.id);
+    if (!pdf) {
+      return res.status(404).json({ message: 'PDF not found' });
+    }
+
+    // If stored in Vercel Blob, redirect to blob URL
+    if (pdf.blobUrl) {
+      return res.redirect(pdf.blobUrl);
+    }
+
+    // If stored locally, serve the file
+    if (pdf.path && fs.existsSync(pdf.path)) {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${pdf.originalName}"`);
+      return fs.createReadStream(pdf.path).pipe(res);
+    }
+
+    res.status(404).json({ message: 'PDF file not found' });
+  } catch (error) {
+    console.error('Error downloading PDF:', error);
+    res.status(500).json({ message: 'Error downloading PDF' });
+  }
+});
+
+// View PDF file (inline)
+router.get('/pdfs/:id/view', async (req, res) => {
+  console.log(`GET /pdfs/${req.params.id}/view route accessed`);
+  try {
+    const pdf = await Pdf.findById(req.params.id);
+    if (!pdf) {
+      return res.status(404).json({ message: 'PDF not found' });
+    }
+
+    // If stored in Vercel Blob, redirect to blob URL
+    if (pdf.blobUrl) {
+      return res.redirect(pdf.blobUrl);
+    }
+
+    // If stored locally, serve the file inline
+    if (pdf.path && fs.existsSync(pdf.path)) {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${pdf.originalName}"`);
+      return fs.createReadStream(pdf.path).pipe(res);
+    }
+
+    res.status(404).json({ message: 'PDF file not found' });
+  } catch (error) {
+    console.error('Error viewing PDF:', error);
+    res.status(500).json({ message: 'Error viewing PDF' });
+  }
+});
+
+// Get single PDF details
+router.get('/pdfs/:id', async (req, res) => {
+  try {
+    const pdf = await Pdf.findById(req.params.id);
+    if (!pdf) {
+      return res.status(404).json({ message: 'PDF not found' });
+    }
+    res.json(pdf);
+  } catch (error) {
+    console.error('Error fetching PDF:', error);
+    res.status(500).json({ message: 'Error fetching PDF' });
+  }
+});
+
+// Generate AI summary for a PDF
+router.post('/pdfs/:id/summary', async (req, res) => {
+  console.log(`POST /pdfs/${req.params.id}/summary route accessed`);
+
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(503).json({
+      success: false,
+      error: 'AI features not configured. Please set OPENAI_API_KEY.'
+    });
+  }
+
+  try {
+    const { generateSummary } = require('../services/summaryService');
+    const result = await generateSummary(req.params.id);
+    res.json(result);
+  } catch (error) {
+    console.error('Error generating summary:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to generate summary'
+    });
+  }
+});
+
 module.exports = router;

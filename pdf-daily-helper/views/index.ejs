@@ -1,36 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('partials/_head.ejs') %>
-  <body>
+<style>
+  .upload-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .upload-tabs .nav-link {
+    color: #495057;
+  }
+  .upload-tabs .nav-link.active {
+    color: #0d6efd;
+    font-weight: 500;
+  }
+  .file-count-badge {
+    background: #0d6efd;
+    color: white;
+    border-radius: 12px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+  }
+  .upload-progress {
+    display: none;
+  }
+  .upload-progress.show {
+    display: block;
+  }
+</style>
+<body>
 <%- include('partials/_header.ejs') %>
 
 <main class="container mt-4" role="main">
-  <h1>Welcome to PDF Daily Helper</h1>
+  <h1>PDF Daily Helper</h1>
+  <p class="text-muted">Upload, search, and analyze your PDF documents with AI</p>
 
-  <form action="/api/upload" method="POST" enctype="multipart/form-data" class="mt-4">
-    <div class="mb-3">
-      <label for="pdfFile" class="form-label">Upload PDF File</label>
-      <input type="file" class="form-control" id="pdfFile" name="pdfFile" accept=".pdf" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Upload</button>
-  </form>
-
-  <div class="container mt-4">
-    <h2>Uploaded PDFs</h2>
-    <ul class="list-group">
-      <% pdfs.forEach(pdf => { %>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <%= pdf.originalName %>
-          <div>
-            <a href="/api/pdfs/<%= pdf._id %>/parsed" class="btn btn-info btn-sm" target="_blank">View Parsed Data</a>
-            <button class="btn btn-danger btn-sm delete-pdf" data-id="<%= pdf._id %>">Delete</button>
-          </div>
-        </li>
-      <% }) %>
+  <div class="upload-card">
+    <ul class="nav nav-tabs upload-tabs mb-3" role="tablist">
+      <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#singleUpload">Single Upload</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#batchUpload">Batch Upload</button>
+      </li>
     </ul>
+
+    <div class="tab-content">
+      <!-- Single Upload -->
+      <div class="tab-pane fade show active" id="singleUpload">
+        <form id="singleUploadForm" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="pdfFile" class="form-label">Select PDF File</label>
+            <input type="file" class="form-control" id="pdfFile" name="pdfFile" accept=".pdf" required>
+          </div>
+          <button type="submit" class="btn btn-primary" id="singleUploadBtn">Upload</button>
+        </form>
+      </div>
+
+      <!-- Batch Upload -->
+      <div class="tab-pane fade" id="batchUpload">
+        <form id="batchUploadForm" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="pdfFiles" class="form-label">
+              Select Multiple PDFs
+              <span id="fileCountBadge" class="file-count-badge" style="display: none;">0</span>
+            </label>
+            <input type="file" class="form-control" id="pdfFiles" name="pdfFiles" accept=".pdf" multiple required>
+            <small class="text-muted">Maximum 10 files at once, 5MB each</small>
+          </div>
+          <button type="submit" class="btn btn-primary" id="batchUploadBtn">Upload All</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="upload-progress mt-3" id="uploadProgress">
+      <div class="progress">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+      </div>
+      <p class="text-muted mt-2 mb-0" id="uploadStatus">Uploading...</p>
+    </div>
   </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Uploaded PDFs</h2>
+    <span class="text-muted" id="pdfCount"></span>
+  </div>
+
+  <ul class="list-group" id="pdfList">
+    <li class="list-group-item text-muted">Loading PDFs...</li>
+  </ul>
 </main>
 
 <%- include('partials/_footer.ejs') %>
-<script src="/js/viewParsedData.js"></script>
+
+<script>
+  // Update file count badge for batch upload
+  document.getElementById('pdfFiles').addEventListener('change', function() {
+    const badge = document.getElementById('fileCountBadge');
+    if (this.files.length > 0) {
+      badge.textContent = this.files.length;
+      badge.style.display = 'inline';
+    } else {
+      badge.style.display = 'none';
+    }
+  });
+
+  // Single upload handler
+  document.getElementById('singleUploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const form = this;
+    const btn = document.getElementById('singleUploadBtn');
+    const progress = document.getElementById('uploadProgress');
+    const status = document.getElementById('uploadStatus');
+
+    btn.disabled = true;
+    progress.classList.add('show');
+    status.textContent = 'Uploading...';
+
+    try {
+      const formData = new FormData(form);
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        status.textContent = 'Upload complete!';
+        form.reset();
+        setTimeout(() => {
+          progress.classList.remove('show');
+          fetchPDFs();
+        }, 1000);
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (error) {
+      status.textContent = 'Upload failed. Please try again.';
+      setTimeout(() => progress.classList.remove('show'), 2000);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Batch upload handler
+  document.getElementById('batchUploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const form = this;
+    const btn = document.getElementById('batchUploadBtn');
+    const progress = document.getElementById('uploadProgress');
+    const status = document.getElementById('uploadStatus');
+    const fileCount = document.getElementById('pdfFiles').files.length;
+
+    btn.disabled = true;
+    progress.classList.add('show');
+    status.textContent = `Uploading ${fileCount} files...`;
+
+    try {
+      const formData = new FormData(form);
+      const response = await fetch('/api/upload/batch', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        status.textContent = data.message;
+        form.reset();
+        document.getElementById('fileCountBadge').style.display = 'none';
+        setTimeout(() => {
+          progress.classList.remove('show');
+          fetchPDFs();
+        }, 1500);
+      } else {
+        throw new Error(data.error || 'Upload failed');
+      }
+    } catch (error) {
+      status.textContent = 'Upload failed. Please try again.';
+      setTimeout(() => progress.classList.remove('show'), 2000);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
 </html>

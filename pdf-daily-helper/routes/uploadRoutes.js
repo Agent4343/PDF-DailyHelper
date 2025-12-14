@@ -83,4 +83,66 @@ router.post('/upload', upload.single('pdfFile'), async (req, res) => {
   }
 });
 
+// Batch upload - multiple files
+router.post('/upload/batch', upload.array('pdfFiles', 10), async (req, res) => {
+  console.log('Batch upload route accessed');
+
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ success: false, error: 'No files uploaded.' });
+  }
+
+  const results = {
+    success: [],
+    failed: []
+  };
+
+  for (const file of req.files) {
+    try {
+      let pdfData = {
+        filename: Date.now() + '-' + file.originalname,
+        originalName: file.originalname,
+        user: req.userId
+      };
+
+      if (isVercelBlobEnabled) {
+        const { put } = require('@vercel/blob');
+        const blob = await put(pdfData.filename, file.buffer, {
+          access: 'public',
+          contentType: 'application/pdf'
+        });
+        pdfData.blobUrl = blob.url;
+      } else {
+        pdfData.path = file.path;
+        pdfData.filename = file.filename;
+      }
+
+      const newPdf = new Pdf(pdfData);
+      await newPdf.save();
+
+      // Parse PDF in background (don't wait)
+      parsePdf(newPdf._id).catch(err => {
+        console.error(`Error parsing PDF ${file.originalname}:`, err);
+      });
+
+      results.success.push({
+        name: file.originalname,
+        id: newPdf._id
+      });
+
+    } catch (error) {
+      console.error(`Error uploading ${file.originalname}:`, error);
+      results.failed.push({
+        name: file.originalname,
+        error: error.message
+      });
+    }
+  }
+
+  res.json({
+    success: true,
+    message: `Uploaded ${results.success.length} of ${req.files.length} files`,
+    results
+  });
+});
+
 module.exports = router;

@@ -14,7 +14,6 @@ async function fetchPDFs() {
     const pdfCount = document.getElementById('pdfCount');
 
     if (!pdfList) {
-      console.error('PDF list element not found');
       return;
     }
 
@@ -25,12 +24,17 @@ async function fetchPDFs() {
 
     pdfList.innerHTML = pdfs.length === 0
       ? '<li class="list-group-item text-muted">No PDFs uploaded yet. Upload your first document above.</li>'
-      : pdfs.map(pdf => `
+      : pdfs.map(pdf => {
+          const expiresInfo = pdf.expiresAt
+            ? `<span class="badge bg-secondary ms-2" title="Auto-deletes ${new Date(pdf.expiresAt).toLocaleString()}">Expires</span>`
+            : '';
+          return `
           <li class="list-group-item">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
               <div>
                 <strong>${pdf.originalName}</strong>
                 ${pdf.structure?.ocrUsed ? '<span class="badge bg-warning text-dark ms-2" title="Text extracted via OCR">OCR</span>' : ''}
+                ${expiresInfo}
                 <small class="text-muted d-block">${new Date(pdf.uploadDate).toLocaleString()}${pdf.structure?.numPages ? ` • ${pdf.structure.numPages} pages` : ''}${pdf.extractedText?.length ? ` • ${pdf.extractedText.length.toLocaleString()} chars` : ''}</small>
               </div>
               <div class="btn-group btn-group-sm">
@@ -41,12 +45,11 @@ async function fetchPDFs() {
               </div>
             </div>
           </li>
-        `).join('');
+        `}).join('');
 
     addDeleteListeners();
     addSummaryListeners();
   } catch (error) {
-    console.error('Error fetching PDFs:', error);
     const pdfList = document.getElementById('pdfList');
     if (pdfList) {
       pdfList.innerHTML = '<li class="list-group-item text-danger">Error fetching PDFs. Please try again later.</li>';
@@ -79,7 +82,6 @@ async function deletePDF(pdfId) {
     alert(result.message);
     fetchPDFs();
   } catch (error) {
-    console.error('Error:', error);
     alert('An error occurred while deleting the PDF.');
   }
 }
@@ -104,7 +106,6 @@ function addSummaryListeners() {
           alert(data.error || 'Failed to generate summary');
         }
       } catch (error) {
-        console.error('Error:', error);
         alert('An error occurred while generating summary.');
       } finally {
         button.disabled = false;

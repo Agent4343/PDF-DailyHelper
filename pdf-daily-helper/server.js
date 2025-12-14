@@ -57,16 +57,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware to log requests (reduced for production)
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    if (req.method === 'POST') {
-      console.log('POST request body:', req.body);
-    }
-    console.log(`Incoming request: ${req.method} ${req.url}`);
-    next();
-  });
-}
+// Request logging disabled for privacy
+// No IP addresses, user agents, or request details are logged
 
 // Setting the templating engine to EJS
 app.set("view engine", "ejs");

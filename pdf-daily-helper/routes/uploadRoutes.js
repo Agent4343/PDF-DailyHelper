@@ -32,20 +32,22 @@ const upload = multer({
 });
 
 router.post('/upload', upload.single('pdfFile'), async (req, res) => {
-  console.log('Upload route accessed');
   if (!req.file) {
-    console.log('No file uploaded');
     return res.status(400).send('No file uploaded.');
   }
 
   try {
-    console.log('Saving PDF to database');
-
     let pdfData = {
       filename: Date.now() + '-' + req.file.originalname,
-      originalName: req.file.originalname,
-      user: req.userId // Use JWT user ID
+      originalName: req.file.originalname
+      // No user tracking for privacy
     };
+
+    // Handle auto-delete expiration
+    const autoDeleteHours = parseInt(req.body.autoDelete);
+    if (autoDeleteHours && autoDeleteHours > 0) {
+      pdfData.expiresAt = new Date(Date.now() + autoDeleteHours * 60 * 60 * 1000);
+    }
 
     // Upload to Vercel Blob if available, otherwise use local storage
     if (isVercelBlobEnabled) {
@@ -55,7 +57,6 @@ router.post('/upload', upload.single('pdfFile'), async (req, res) => {
         contentType: 'application/pdf'
       });
       pdfData.blobUrl = blob.url;
-      console.log('File uploaded to Vercel Blob:', blob.url);
     } else {
       pdfData.path = req.file.path;
       pdfData.filename = req.file.filename;
@@ -63,30 +64,18 @@ router.post('/upload', upload.single('pdfFile'), async (req, res) => {
 
     const newPdf = new Pdf(pdfData);
     await newPdf.save();
-    console.log('PDF saved to database:', newPdf);
 
-    console.log('Initiating PDF parsing');
-    try {
-      await parsePdf(newPdf._id);
-      console.log('PDF parsed successfully');
-    } catch (error) {
-      console.error('Error parsing PDF:', error);
-      console.error(error.stack);
-    }
+    // Parse PDF in background
+    parsePdf(newPdf._id).catch(() => {});
 
-    console.log('Sending success response to client');
-    res.status(200).send('File uploaded successfully and parsing initiated.');
+    res.status(200).send('File uploaded successfully.');
   } catch (error) {
-    console.error('Error in upload route:', error);
-    console.error(error.stack);
     res.status(500).send('Error uploading file.');
   }
 });
 
 // Batch upload - multiple files
 router.post('/upload/batch', upload.array('pdfFiles', 10), async (req, res) => {
-  console.log('Batch upload route accessed');
-
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ success: false, error: 'No files uploaded.' });
   }
@@ -96,13 +85,23 @@ router.post('/upload/batch', upload.array('pdfFiles', 10), async (req, res) => {
     failed: []
   };
 
+  // Handle auto-delete expiration
+  const autoDeleteHours = parseInt(req.body.autoDelete);
+  const expiresAt = (autoDeleteHours && autoDeleteHours > 0)
+    ? new Date(Date.now() + autoDeleteHours * 60 * 60 * 1000)
+    : null;
+
   for (const file of req.files) {
     try {
       let pdfData = {
         filename: Date.now() + '-' + file.originalname,
-        originalName: file.originalname,
-        user: req.userId
+        originalName: file.originalname
+        // No user tracking for privacy
       };
+
+      if (expiresAt) {
+        pdfData.expiresAt = expiresAt;
+      }
 
       if (isVercelBlobEnabled) {
         const { put } = require('@vercel/blob');
@@ -119,10 +118,8 @@ router.post('/upload/batch', upload.array('pdfFiles', 10), async (req, res) => {
       const newPdf = new Pdf(pdfData);
       await newPdf.save();
 
-      // Parse PDF in background (don't wait)
-      parsePdf(newPdf._id).catch(err => {
-        console.error(`Error parsing PDF ${file.originalname}:`, err);
-      });
+      // Parse PDF in background
+      parsePdf(newPdf._id).catch(() => {});
 
       results.success.push({
         name: file.originalname,
@@ -130,7 +127,6 @@ router.post('/upload/batch', upload.array('pdfFiles', 10), async (req, res) => {
       });
 
     } catch (error) {
-      console.error(`Error uploading ${file.originalname}:`, error);
       results.failed.push({
         name: file.originalname,
         error: error.message

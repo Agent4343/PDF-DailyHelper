@@ -55,6 +55,17 @@
             <label for="pdfFile" class="form-label">Select PDF File</label>
             <input type="file" class="form-control" id="pdfFile" name="pdfFile" accept=".pdf" required>
           </div>
+          <div class="mb-3">
+            <label for="autoDelete" class="form-label">Auto-delete after (optional)</label>
+            <select class="form-select" id="autoDelete" name="autoDelete">
+              <option value="">Never (keep forever)</option>
+              <option value="1">1 hour</option>
+              <option value="24">24 hours</option>
+              <option value="168">7 days</option>
+              <option value="720">30 days</option>
+            </select>
+            <small class="text-muted">Document will be automatically deleted after this time</small>
+          </div>
           <button type="submit" class="btn btn-primary" id="singleUploadBtn">Upload</button>
         </form>
       </div>
@@ -69,6 +80,17 @@
             </label>
             <input type="file" class="form-control" id="pdfFiles" name="pdfFiles" accept=".pdf" multiple required>
             <small class="text-muted">Maximum 10 files at once, 5MB each</small>
+          </div>
+          <div class="mb-3">
+            <label for="batchAutoDelete" class="form-label">Auto-delete after (optional)</label>
+            <select class="form-select" id="batchAutoDelete" name="autoDelete">
+              <option value="">Never (keep forever)</option>
+              <option value="1">1 hour</option>
+              <option value="24">24 hours</option>
+              <option value="168">7 days</option>
+              <option value="720">30 days</option>
+            </select>
+            <small class="text-muted">Documents will be automatically deleted after this time</small>
           </div>
           <button type="submit" class="btn btn-primary" id="batchUploadBtn">Upload All</button>
         </form>

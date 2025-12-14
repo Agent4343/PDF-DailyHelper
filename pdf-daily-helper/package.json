@@ -20,6 +20,7 @@
     "bcrypt": "^5.1.1",
     "openai": "^4.73.0",
     "body-parser": "^1.20.2",
+    "canvas": "^2.11.2",
     "chart.js": "^4.4.1",
     "connect-flash": "^0.1.1",
     "connect-mongo": "^5.1.0",
@@ -33,7 +34,9 @@
     "mongoose": "^8.7.0",
     "mongoose-algolia": "^1.10.1",
     "multer": "^1.4.5-lts.1",
-    "pdf-parse": "^1.1.1"
+    "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^4.0.379",
+    "tesseract.js": "^5.0.4"
   },
   "engines": {
     "node": ">=18.0.0"

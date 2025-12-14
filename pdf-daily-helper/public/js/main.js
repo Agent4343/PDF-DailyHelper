@@ -30,7 +30,8 @@ async function fetchPDFs() {
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
               <div>
                 <strong>${pdf.originalName}</strong>
-                <small class="text-muted d-block">${new Date(pdf.uploadDate).toLocaleString()}${pdf.structure?.numPages ? ` • ${pdf.structure.numPages} pages` : ''}</small>
+                ${pdf.structure?.ocrUsed ? '<span class="badge bg-warning text-dark ms-2" title="Text extracted via OCR">OCR</span>' : ''}
+                <small class="text-muted d-block">${new Date(pdf.uploadDate).toLocaleString()}${pdf.structure?.numPages ? ` • ${pdf.structure.numPages} pages` : ''}${pdf.extractedText?.length ? ` • ${pdf.extractedText.length.toLocaleString()} chars` : ''}</small>
               </div>
               <div class="btn-group btn-group-sm">
                 <a href="/viewer/${pdf._id}" class="btn btn-outline-primary" title="View PDF">View</a>

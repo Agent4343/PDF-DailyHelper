@@ -39,7 +39,8 @@ async function fetchPDFs() {
               </div>
               <div class="btn-group btn-group-sm">
                 <a href="/viewer/${pdf._id}" class="btn btn-outline-primary" title="View PDF">View</a>
-                <a href="/api/pdfs/${pdf._id}/download" class="btn btn-outline-secondary" title="Download PDF">Download</a>
+                <a href="/api/pdfs/${pdf._id}/download" class="btn btn-outline-secondary" title="Download PDF">PDF</a>
+                <a href="/api/pdfs/${pdf._id}/export-text" class="btn btn-outline-secondary" title="Export Text">TXT</a>
                 <button class="btn btn-outline-info summary-pdf" data-id="${pdf._id}" title="AI Summary">Summary</button>
                 <button class="btn btn-outline-danger delete-pdf" data-id="${pdf._id}" title="Delete PDF">Delete</button>
               </div>

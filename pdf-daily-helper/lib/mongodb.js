@@ -2,10 +2,6 @@ const mongoose = require('mongoose');
 
 const MONGODB_URI = process.env.DATABASE_URL;
 
-if (!MONGODB_URI) {
-  throw new Error('Please define the DATABASE_URL environment variable');
-}
-
 let cached = global.mongoose;
 
 if (!cached) {
@@ -13,6 +9,10 @@ if (!cached) {
 }
 
 async function connectToDatabase() {
+  if (!MONGODB_URI) {
+    throw new Error('Please define the DATABASE_URL environment variable');
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
@@ -23,7 +23,6 @@ async function connectToDatabase() {
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log('Database connected successfully');
       return mongoose;
     });
   }

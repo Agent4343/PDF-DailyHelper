@@ -10,6 +10,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const pdfRoutes = require('./routes/pdfRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const gapAnalysisRoutes = require('./routes/gapAnalysisRoutes');
 const Pdf = require('./models/Pdf');
 require('./models/IndexedData');
 
@@ -93,6 +94,9 @@ app.use('/', searchRoutes);
 
 // Chat Routes (AI Assistant)
 app.use('/', chatRoutes);
+
+// Gap Analysis Routes
+app.use('/', gapAnalysisRoutes);
 
 // Root path response
 app.get("/", async (req, res) => {
